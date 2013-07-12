@@ -10,7 +10,7 @@ if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="130712dev0355std_jq1.9"; //版本?
+$ver="130712dev1726std_jq1.9"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
