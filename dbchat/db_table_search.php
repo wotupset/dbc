@@ -50,9 +50,11 @@ if($t&&$find){ //&&FALSE
 }
 $body=$body."<br/>";
 
+$tmp='';
+if($t2){$tmp=$t2;}else{$tmp=$t;}
 $form='<form action="'.$t_url.'" method="POST">
 <input type=hidden name=mode value=reg>
-table_name: <input type="text" name="t" value="'.$t2.'"/><br/>
+table_name: <input type="text" name="t" value="'.$tmp.'"/><br/>
 keyword: <input type="text" name="find" value="'.$find.'"/><br/>
 <label><input type=checkbox name=chk id=chk value=on>確認</label>
 <input type="submit" value="送出"/><br/>
