@@ -7,22 +7,20 @@ if(empty($t2)){die('xt2');}
 $body='';
 $t_url=$phpself."?t2=".$t2."&f2=".$f2."&".$time;
 
-//echo "原始".$pw."<br/>";
-$ip=$_SERVER["REMOTE_ADDR"];
 //$tmp=preg_replace('/.+\.([0-9]+)$/','\\1',$ip);
-if($pw==''){$pw=$ip;}//沒輸入密碼 用IP代替
-$pw=substr(crypt(md5($pw.gmdate("ymd", $time)),'id'),-8);
 //echo "改變".$pw."<br/>";
 switch($mode){
 	case 'reg':
 		if(!$chk){die('!chk');}
+		if($pw==''){$pw=$_SERVER["REMOTE_ADDR"];$body.="使用ip作為密碼";}//沒輸入密碼 用IP代替
 		$pw_org=$pw;
-		if($pw_org==$admin_pw){//使用管理員密碼
-			$tmp="UPDATE `$t` SET `Text`='' WHERE `uid`='$f'";
+		if($pw_org==$admin_pw){//使用管理員密碼的情況
+			$tmp="UPDATE `$t` SET `Text`='',`tag`='' WHERE `uid`='$f'";
 			$tmp=mysql_query($tmp,$con);
 			if(mysql_error()){die(mysql_error());}//有錯誤就停止
-		}else{//一般刪除
-			$tmp="UPDATE `$t` SET `Text`='' WHERE `uid`='$f'";
+		}else{//一般刪除 檢查輸入的密碼
+			$pw=substr(crypt(md5($pw.gmdate("ymd", $time)),'id'),-8);
+			$tmp="UPDATE `$t` SET `Text`='',`tag`='' WHERE `uid`='$f' AND `pw`='$pw'";
 			$tmp=mysql_query($tmp,$con);
 			if(mysql_error()){die(mysql_error());}//有錯誤就停止
 		}

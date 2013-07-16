@@ -178,7 +178,7 @@ $htmlbody.= $form;
 		$text=$row['text'];
 //bbcode()
 $string = $text; //bbcode目前只使用連結功能
-$string = preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target=_blank>\\2\\3</a>", $string);
+$string = preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target='_blank'>\\2\\3</a>", $string);
 $string = preg_replace("/\n/si", "<br/>", $string);
 $text = $string;
 //bbcode(/)
@@ -197,7 +197,7 @@ $text = $string;
 		//$box.="<a href='db_table_delone.php?t2=".$t2."&f2=".$row['uid']."'>del</a> ";//刪除單篇文章
 		//$box.=about_time($row['age'],$time); //顯示發文的大約時間
 		//如果tag有值
-		if($row['tag']){$box.="<a href='./?tag=".$row['tag']."&t2=".$t2."'>#".$row['tag']."</a> ";}
+		if($row['tag']){$box.="<a href='./?tag=".$row['tag']."&t2=".$t2."'>".$row['tag']."</a> ";}
 		$box.="</dt>";
 
 		$box.="\n<dd>".$text."</dd>";//內文

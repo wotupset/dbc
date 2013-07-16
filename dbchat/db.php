@@ -14,6 +14,7 @@ function reg($con,$p2,$t2,$text,$t_url,$pw,$tag,$time){
 	$ip=$_SERVER["REMOTE_ADDR"];
 	//$tmp=preg_replace('/.+\.([0-9]+)$/','\\1',$ip);
 	setcookie("pwcookie", $pw,$time+7*24*3600); //存入原始的密碼 7天過期
+	
 	if($pw==''){$pw=$ip;}//沒輸入密碼 用IP代替
 	$pw=substr(crypt(md5($pw.gmdate("ymd", $time)),'id'),-8);
 	////
@@ -95,16 +96,37 @@ function view($dbname,$con,$p2,$t2,$t_url,$time){
 
 	//echo gmdate('Y/m/d(D) H:i:s', time()+60*60*8);
 	//echo time().date('Y/m/d(D) H:i:s', time());
-$form='
-<form action="'.$t_url.'" method="post">
-<input type=hidden name=mode value=reg>
-內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea>
-<br/>
-tag: <input type="text" name="tag" value=""/>
-pw: <input type="password" name="pw" id="pw" value=""/>
-<label><input type=checkbox name=chk id=chk value=on>確認</label>
-<input type="submit" value="送出"/><h1>'.$t2.'</h1><br/>
-</form>';
+	//gmdate('H',$time)=="14" && 
+	if(gmdate('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示
+	$uid=uniqid(chr(rand(97,122)),true);//建立唯一ID
+	//$chk_time_key='abc123';
+	$chk_time_key=$GLOBALS['chk_time_key'];
+	$text_org=(string)$time;
+	$chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
+	$chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
+$form=<<<EOT
+<form id='form1' action='$t_url' method='post' onsubmit="return check2();">
+<input type="hidden" name="mode" value="reg">
+<input type="hidden" name="exducrtj" value="$chk_time_enc">
+內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea><br/>
+標籤<input type="text" name="tag" maxlength="16" size="30" value=""/>
+密碼<input type="password" name="pw" id="pw" value=""/>
+<label><input type="checkbox" id="chk130711" name="chk130711" checked="checked">確認</label>
+<input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
+<h1>$t2</h1> $tmp
+</form>
+<script language="Javascript">
+//document.getElementById("chk130711").checked=true;
+function check(){
+	document.getElementById("send").value="稍後";
+}
+function check2(){
+	document.getElementById("send").disabled=true;
+	document.getElementById("send").style.backgroundColor="#ff0000";
+}
+
+</script>
+EOT;
 	echo $form;
 
 	$page_echo='';
@@ -167,7 +189,7 @@ $string = preg_replace("/\[s([1-7])\](.*?)\[\/s([1-7])\]/si","<font size=\"\\1\"
 $string = preg_replace("/\[pre\](.*?)\[\/pre\]/si", "<pre>\\1</pre>", $string);
 $string = preg_replace("/\[quote\](.*?)\[\/quote\]/si", "<blockquote>\\1</blockquote>", $string);
 */
-$string = preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target=_blank>\\2\\3</a>", $string);
+$string = preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target='_blank'>\\2\\3</a>", $string);
 $string = preg_replace("/\n/si", "<br/>", $string);
 $text = $string;
 //bbcode(/)
@@ -199,7 +221,7 @@ $text = $string;
 		$box.="<a href='db_table_delone.php?t2=".$t2."&f2=".$row['uid']."'>del</a> ";
 		$box.=about_time($row['age'],$time); //顯示發文的大約時間
 		if($row['tag']){//如果tag有值
-			$box.=" <a href='db_table_tag.php?f2=".$row['tag']."&t2=".$t2."'>#".$row['tag']."</a> ";
+			$box.=" <a href='db_table_tag.php?f2=".$row['tag']."&t2=".$t2."'>".$row['tag']."</a> ";
 		}
 		$box.="</dt>";
 /*
@@ -229,7 +251,19 @@ $text = $string;
 
 switch($mode){
 	case 'reg':
-		if(!$chk){die('!chk');}
+		//checkbox認證
+		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
+		if($chk130711!='確認'){die($chk130711);}
+		//檢查tag格式
+		$tag=trim($tag);
+		$tag= preg_replace("/\#/", "", $tag);//去掉意外加入的#號 
+		if(strlen($tag)>16){die('tag標籤最多16個半形英數');}
+		if(preg_match('/[^\w]+/', $tag)){die('tag標籤只允許英文數字底線');}
+		//檢查時間格式
+		//$chk_time_key=$GLOBALS['$chk_time_key'];
+		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
+		if(preg_match('/[^0-9]+/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為數字
+		if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		reg($con,$p2,$t2,$text,$t_url,$pw,$tag,$time);
 	break;
 	default:

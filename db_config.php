@@ -10,7 +10,7 @@ if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="130712dev1726std_jq1.9"; //版本?
+$ver="130717dev1843std_jq1.9"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -73,7 +73,7 @@ $htmlstart=<<<EOT
 <script type="text/javascript" src="db.js"></script>$tmp
 <STYLE TYPE="text/css"><!--
 body { font-family:"細明體"; }
-h1 {font-size:small;display:inline;}
+h1 {color:$ver_color;font-size:small;display:inline;}
 h2 {color:$ver_color;font-size:small;display:inline;}
 A:hover  {color:#000080;background-color:#fafad2;text-decoration:none;}
 blockquote {display:block; padding: 0px; margin:0; float:left; margin-left: 30px; BORDER-LEFT:#f00 10px solid; }
@@ -161,7 +161,7 @@ function about_time($go,$time){
 	return $go;
 }
 
-
+//*
 function passport_encrypt($txt, $key) {
 	srand((double)microtime() * 1000000);
 	$encrypt_key = md5(rand(0, 32000));
@@ -198,6 +198,7 @@ function passport_encode($array) {
 	}
 	return implode('&', $arrayenc);
 }
+//*
 /*
 $chk_time_key='abc123';
 $chk_time_enc=passport_encrypt($time,$chk_time_key);

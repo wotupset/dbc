@@ -6,11 +6,13 @@ extract($_COOKIE,EXTR_SKIP);
 error_reporting(E_ALL & ~E_NOTICE); //所有錯誤中排除NOTICE提示
 if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 //
-require 'db_config_pw.php';
+//require 'db_config_pw.php';
+$admin_pw='123'; //db_table_del.php刪除用密碼
+$chk_time_key='abc123';
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $phphost=$_SERVER["SERVER_NAME"];
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="130712dev0355jq1.9"; //版本?
+$ver="130717dev1842jq1.9"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -72,7 +74,7 @@ $htmlstart=<<<EOT
 <script type="text/javascript" src="db.js"></script>$tmp
 <STYLE TYPE="text/css"><!--
 body { font-family:"細明體"; }
-h1 {font-size:small;display:inline;}
+h1 {color:$ver_color;font-size:small;display:inline;}
 h2 {color:$ver_color;font-size:small;display:inline;}
 A:hover  {color:#000080;background-color:#fafad2;text-decoration:none;}
 blockquote {display:block; padding: 0px; margin:0; float:left; margin-left: 30px; BORDER-LEFT:#f00 10px solid; }
@@ -160,5 +162,48 @@ function about_time($go,$time){
 	return $go;
 }
 
-
+//*
+function passport_encrypt($txt, $key) {
+	srand((double)microtime() * 1000000);
+	$encrypt_key = md5(rand(0, 32000));
+	$ctr = 0;
+	$tmp = '';
+	for($i = 0; $i < strlen($txt); $i++) {
+		$ctr = $ctr == strlen($encrypt_key) ? 0 : $ctr;
+		$tmp .= $encrypt_key[$ctr].($txt[$i] ^ $encrypt_key[$ctr++]);
+	}
+	return base64_encode(passport_key($tmp, $key));
+}
+function passport_decrypt($txt, $key) {
+	$txt = passport_key(base64_decode($txt), $key);
+	$tmp = '';
+	for ($i = 0; $i < strlen($txt); $i++) {
+		$tmp .= $txt[$i] ^ $txt[++$i];
+	}
+	return $tmp;
+}
+function passport_key($txt, $encrypt_key) {
+	$encrypt_key = md5($encrypt_key);
+	$ctr = 0;
+	$tmp = '';
+	for($i = 0; $i < strlen($txt); $i++) {
+		$ctr = $ctr == strlen($encrypt_key) ? 0 : $ctr;
+		$tmp .= $txt[$i] ^ $encrypt_key[$ctr++];
+	}
+	return $tmp;
+}
+function passport_encode($array) {
+	$arrayenc = array();
+	foreach($array as $key => $val) {
+		$arrayenc[] = $key.'='.urlencode($val);
+	}
+	return implode('&', $arrayenc);
+}
+//*
+/*
+$chk_time_key='abc123';
+$chk_time_enc=passport_encrypt($time,$chk_time_key);
+$chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);
+echo $time.' '.$chk_time_enc.' '.$chk_time_dec;
+*/
 ?>
