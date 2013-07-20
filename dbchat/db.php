@@ -20,6 +20,9 @@ function reg($con,$p2,$t2,$text,$t_url,$pw,$tag,$time){
 	////
 	$idseed="ㄎㄎ";
 	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.gmdate("ymd", $time)),'id'),-8);
+	$ban_name=array('9wCbz69Y','wtFhKRsc');
+	foreach($ban_name as $k => $v){if($name==$v){die($v);}}
+	
 	////
 	if($text==""){die("無內文");}
 	$text=chra_fix($text);//[自訂函數]轉換成安全字元
