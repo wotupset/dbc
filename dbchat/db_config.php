@@ -8,7 +8,7 @@ if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 //
 //require 'db_config_pw.php';
 $admin_pw='123'; //db_table_del.php刪除用密碼
-$chk_time_key='abc123';
+$chk_time_key='abc123'; //認證用種子
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $phphost=$_SERVER["SERVER_NAME"];
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
