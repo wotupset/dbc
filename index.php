@@ -220,15 +220,15 @@ function tag($con,$tag,$t2,$time){
 	$result = mysql_query($sql); //列出相符的tag
 	if(mysql_error()){die($t2."不存在");}//有錯誤就停止
 	$rowsmax = mysql_num_rows($result);//取得資料庫總筆數
+	if($rowsmax>50){$limit=50;}else{$limit=$rowsmax;}//實際取50就好
 	
-	$limit=50;//實際取50就好
-
-	$cc=0;
+	$cc=0;$cc2=0;
 	$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
 	$echo_data=''; //
 	$echo_data.="<span style='display:block;BORDER-LEFT:#0f0 10px solid'><dl>";
 	while($row = mysql_fetch_array($result)){
-		if($cc>$limit){break;}//顯示數量不超過limit
+		if($cc>=$limit){break;}//顯示數量不超過limit
+		$cc2=$limit-$cc;
 		$echo_data.="<dt>";
 		//echo " ".$row['age']." ";
 		$echo_data.="[".$row['time']."] ";
@@ -238,12 +238,12 @@ function tag($con,$tag,$t2,$time){
 		$echo_data.=" ".$row['tutorial_id']." ";
 		$echo_data.="</dt>";
 		$echo_data.="<dd>".$row['text']."</dd>";
-		$echo_data.="<dt>&#10048;</dt>";
+		$echo_data.="<dt>".$cc2."&#10048;</dt>";
 		$cc=$cc+1;
 	}
 	$echo_data.="</dl></span>";
 	$form=$GLOBALS['form'];
-	$echo_data='在'.$t2.'標'.$tag.'有'.$cc.'/'.$rowsmax.'/'.$limit.'<br>'.$back.$echo_data.$back;
+	$echo_data='在'.$t2.'標'.$tag.'有'.$rowsmax.'現'.$cc.'<br>'.$back.$echo_data.$back;
 	$echo_data=$form.$echo_data;//發文欄位
 	return $echo_data;
 }
