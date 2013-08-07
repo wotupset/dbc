@@ -5,6 +5,7 @@ require 'db_config.php';//$time
 if($p2==""){$p2=0;}
 if($t2==""){$t2='index';}
 //$phpself
+
 if($tag){$tmp="&tag=$tag";}else{$tmp="";}
 $t_url="./?t2=$t2".$tmp;//網址
 unset($tmp);
@@ -22,23 +23,39 @@ $chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
 $form=<<<EOT
 <form id='form1' action='$t_url' method='post' onsubmit="return check2();">
 <input type="hidden" name="mode" value="reg">
-<input type="hidden" name="exducrtj" value="$chk_time_enc">
 內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea><br/>
-標籤<input type="text" name="tag" maxlength="16" size="30" value="$tag"/><br/>
-<label><input type="checkbox" id="chk130711" name="chk130711" checked="checked">確認</label>
+<div id='timedown_div'>
+標籤<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="3" value=""/><input type="text" name="tag" maxlength="16" size="30" value="$tag"/>
+<span id='timedown_span'></span>
+</div>
+<label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
 <input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
 <h1>$t2</h1> $tmp
 </form>
 <script language="Javascript">
-//document.getElementById("chk130711").checked=true;
-function check(){
+// checked="checked"
+document.getElementById("chk130711").checked=true;
+function check(){//submit
 	document.getElementById("send").value="稍後";
+	document.getElementById("exducrtj").value="$chk_time_enc";
 }
-function check2(){
+function check2(){//onsubmit
 	document.getElementById("send").disabled=true;
 	document.getElementById("send").style.backgroundColor="#ff0000";
 }
-
+var t=60*60;
+function timedown(){
+	var st;
+	document.getElementById("timedown_span").innerHTML=t;
+	if(t){
+		t=t-1;
+		st=setTimeout("timedown()",1000);
+	}else{
+		clearTimeout(st);
+		document.getElementById("timedown_div").style.backgroundColor="#E04000";
+	}
+}
+timedown();
 </script>
 EOT;
 	
@@ -111,12 +128,13 @@ function view($con,$p2,$t2,$time){
 	$sql="SHOW TABLE STATUS";
 	$result = mysql_query($sql); //mysql_list_tables($dbname)
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
-	$tmp=1;
+	$tmp=1;$title='index';
 	while ($row = mysql_fetch_row($result)) {
 		if($row[0]=='index'){$tmp=0;};//有找到叫index的table
 	}
 	//isset($row[0]);
 	if($tmp){//建立預設的表格
+		$t='index';
 		$sql=newtable($t); // return $sql;
 		$result=mysql_query($sql,$con);
 		if(mysql_error()){die(mysql_error());}//有錯誤就停止
@@ -255,6 +273,7 @@ switch($mode){
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
 		if($chk130711!='確認'){die($chk130711);}
 		//檢查tag格式
+		//if($tag){die($tag);}$tag=$tagx;
 		$tag=trim($tag);
 		$tag= preg_replace("/\#/", "", $tag);//去掉意外加入的#號 
 		if(strlen($tag)>16){die('tag標籤最多16個半形英數');}
@@ -262,7 +281,8 @@ switch($mode){
 		//檢查時間格式
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
 		if(preg_match('/[^0-9]+/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為數字
-		if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
+		//if(!($chk_time_dec>0)){die('x>'.$chk_time_dec);}//檢查值必須為數字
+		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		reg($con,$p2,$t2,$text,$pw,$tag,$time);
 	break;
 	

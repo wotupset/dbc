@@ -10,7 +10,7 @@ if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="130724dev2330std_jq1.9"; //版本?
+$ver="130802dev0013std_jq1.9"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -60,6 +60,7 @@ EOT;
 //
 $phphost=$GLOBALS['phphost'];
 $htmlstart=<<<EOT
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
 <html lang="zh-tw">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -67,10 +68,7 @@ $htmlstart=<<<EOT
 <meta name="keywords" content="doll"/>
 <meta name="description" content="$box"/>
 <META http-equiv="Content-Script-Type" content="text/javascript">
-<META http-equiv="Content-Style-Type" content="text/css">
-<script type="text/javascript" src="jquery-1.9.1.min.js"></script>
-<script type="text/javascript" src="jquery.cookie.js"></script>
-<script type="text/javascript" src="db.js"></script>$tmp
+<META http-equiv="Content-Style-Type" content="text/css">$tmp
 <STYLE TYPE="text/css"><!--
 body { font-family:"細明體"; }
 h1 {color:$ver_color;font-size:small;display:inline;}

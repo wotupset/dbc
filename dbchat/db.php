@@ -110,18 +110,19 @@ function view($dbname,$con,$p2,$t2,$t_url,$time){
 $form=<<<EOT
 <form id='form1' action='$t_url' method='post' onsubmit="return check2();">
 <input type="hidden" name="mode" value="reg">
-<input type="hidden" name="exducrtj" value="$chk_time_enc">
 內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea><br/>
-標籤<input type="text" name="tag" maxlength="16" size="30" value=""/>
+標籤<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="3" value=""/><input type="text" name="tag" maxlength="16" size="30" value=""/>
 密碼<input type="password" name="pw" id="pw" value=""/>
-<label><input type="checkbox" id="chk130711" name="chk130711" checked="checked">確認</label>
+<label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
 <input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
 <h1>$t2</h1> $tmp
 </form>
 <script language="Javascript">
-//document.getElementById("chk130711").checked=true;
+// checked="checked"
+document.getElementById("chk130711").checked=true;
 function check(){
 	document.getElementById("send").value="稍後";
+	document.getElementById("exducrtj").value="$chk_time_enc";
 }
 function check2(){
 	document.getElementById("send").disabled=true;
@@ -258,6 +259,7 @@ switch($mode){
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
 		if($chk130711!='確認'){die($chk130711);}
 		//檢查tag格式
+		//if($tag){die($tag);}$tag=$tagx;
 		$tag=trim($tag);
 		$tag= preg_replace("/\#/", "", $tag);//去掉意外加入的#號 
 		if(strlen($tag)>16){die('tag標籤最多16個半形英數');}
@@ -266,7 +268,7 @@ switch($mode){
 		//$chk_time_key=$GLOBALS['$chk_time_key'];
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
 		if(preg_match('/[^0-9]+/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為數字
-		if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
+		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		reg($con,$p2,$t2,$text,$t_url,$pw,$tag,$time);
 	break;
 	default:
