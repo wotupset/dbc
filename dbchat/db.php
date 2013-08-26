@@ -14,7 +14,6 @@ function reg($con,$p2,$t2,$text,$t_url,$pw,$tag,$time){
 	$ip=$_SERVER["REMOTE_ADDR"];
 	//$tmp=preg_replace('/.+\.([0-9]+)$/','\\1',$ip);
 	setcookie("pwcookie", $pw,$time+7*24*3600); //存入原始的密碼 7天過期
-	
 	if($pw==''){$pw=$ip;}//沒輸入密碼 用IP代替
 	$pw=substr(crypt(md5($pw.gmdate("ymd", $time)),'id'),-8);
 	////
@@ -255,6 +254,7 @@ $text = $string;
 
 switch($mode){
 	case 'reg':
+		if($pw!=$admin_pw){die('不公開的網頁');}//不公開的網頁 要輸入密碼才能留言
 		//checkbox認證
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
 		if($chk130711!='確認'){die($chk130711);}

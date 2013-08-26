@@ -20,12 +20,17 @@ $chk_time_key='abc123';
 $text_org=(string)$time;
 $chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
 $chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
+
 $form=<<<EOT
 <form id='form1' action='$t_url' method='post' onsubmit="return check2();">
 <input type="hidden" name="mode" value="reg">
 內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea><br/>
 <div id='timedown_div'>
-標籤<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="3" value=""/><input type="text" name="tag" maxlength="16" size="30" value="$tag"/>
+標籤<input type="text" name="tag" maxlength="16" size="30" value="$tag"/>
+<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="3" value=""/>
+<input type="text" id="screen_width" name="screen_width" maxlength="32" size="3" value=""/>
+<input type="text" id="screen_height" name="screen_height" maxlength="32" size="3" value=""/>
+<input type="text" id="accept_language" name="accept_language" maxlength="32" size="3" value=""/>
 <span id='timedown_span'></span>
 </div>
 <label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
@@ -34,6 +39,10 @@ $form=<<<EOT
 </form>
 <script language="Javascript">
 // checked="checked"
+document.getElementById("screen_width").value=window.screen.width;
+document.getElementById("screen_height").value=window.screen.height;
+document.getElementById("accept_language").value=navigator.language||navigator.browserLanguage;
+
 document.getElementById("chk130711").checked=true;
 function check(){//submit
 	document.getElementById("send").value="稍後";
@@ -70,12 +79,14 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	////
 	$idseed="ㄎㄎ";
 	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.gmdate("ymd", $time)),'id'),-8);
+	//if($GLOBALS['screen_width']&&$GLOBALS['screen_height']){}
+	$name=$name.":".$GLOBALS['screen_width'].$GLOBALS['accept_language'].$GLOBALS['screen_height'];
 	$ban_name=array('9wCbz69Y','wtFhKRsc');
 	foreach($ban_name as $k => $v){if($name==$v){die('');}}
 	////
 	if($text==""){die("無內文");}
+	
 	$text=chra_fix($text);//[自訂函數]轉換成安全字元
-
 	$maxlen=strlen($text);//計算字數
 	$maxline=substr_count($text,"<br/>");
 	/*
@@ -269,6 +280,10 @@ function tag($con,$tag,$t2,$time){
 
 switch($mode){
 	case 'reg':
+		if(!preg_match('/[0-9]+/', $GLOBALS['screen_width'])){die('xW');}//檢查值必須為數字
+		if(!preg_match('/[0-9]+/', $GLOBALS['screen_height'])){die('xH');}//檢查值必須為數字
+		if(!preg_match("/zh/i", $GLOBALS['accept_language'])){die('xL');}//檢查值必須有ZH
+
 		//checkbox認證
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
 		if($chk130711!='確認'){die($chk130711);}
