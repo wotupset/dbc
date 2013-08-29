@@ -1,7 +1,7 @@
 <?php
 header('Content-type: text/html; charset=utf-8');
 require './dbchat/db_ac.php';
-require 'db_config.php';//$time
+require './db_config.php';//$time
 if($p2==""){$p2=0;}
 if($t2==""){$t2='index';}
 //$phpself
@@ -22,21 +22,36 @@ $chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
 $chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
 
 $form=<<<EOT
-<form id='form1' action='$t_url' method='post' onsubmit="return check2();">
-<input type="hidden" name="mode" value="reg">
-內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea><br/>
-<div id='timedown_div'>
-標籤<input type="text" name="tag" maxlength="16" size="30" value="$tag"/>
-<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="3" value=""/>
-<input type="text" id="screen_width" name="screen_width" maxlength="32" size="3" value=""/>
-<input type="text" id="screen_height" name="screen_height" maxlength="32" size="3" value=""/>
-<input type="text" id="accept_language" name="accept_language" maxlength="32" size="3" value=""/>
-<span id='timedown_span'></span>
-</div>
-<label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
-<input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
-<h1>$t2</h1> $tmp
-</form>
+<span style="float: left;text-align: left;">
+	<form id='form1' action='$t_url' method='post' onsubmit="return check2();" autocomplete="off">
+		<input type="hidden" name="mode" value="reg">
+		內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea><br/>
+		<div id='timedown_div'>
+			標籤<input type="text" name="tag" maxlength="16" size="16" value="$tag"/>
+			<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="1" value=""/>
+			<input type="text" id="screen_width" name="screen_width" maxlength="32" size="3" value=""/>
+			<input type="text" id="screen_height" name="screen_height" maxlength="32" size="3" value=""/>
+			<input type="text" id="accept_language" name="accept_language" maxlength="32" size="3" value=""/>
+			<span id='timedown_span'></span>
+		</div>
+		<div style="position: relative; border:#000 1px solid; width: 100%; height: 20px;">
+		<span style="position: absolute; color: blue; border:#000 1px solid; left:1px;top:1px;">
+			<label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
+			<input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
+			<h1>$t2</h1> $tmp
+		</span>
+		</div>
+	</form>
+</span>
+<span style="float: right;  text-align: right;">
+	<form id='form2' action='$t_url' method='post' autocomplete="off">
+		<input type="hidden" name="mode" value="find">
+		<input type="text" name="word" maxlength="32" size="16" placeholder="find" value=""/>
+		<input type="submit" value="送出"/>  
+	</form>
+</span>
+
+<br clear="both"/><hr/>
 <script language="Javascript">
 // checked="checked"
 document.getElementById("screen_width").value=window.screen.width;
@@ -193,7 +208,7 @@ $htmlbody.= $form;
 	}
 	$page_echo=$page_zero.$page_echo;//第0頁接在前面
 	$page_echo=$max_print."筆".$show_new."見".$page_echo;
-	$htmlbody.= '<hr/><a id="top" href="#bott">▼</a>'.$page_echo."<hr/>";
+	$htmlbody.= '<a id="top" href="#bott">▼</a>'.$page_echo."<hr/>";
 	if($p2==0){
 		$sql = "SELECT * FROM `$t2` ORDER BY `age` DESC LIMIT $show_new";//最新頁
 	}else{
@@ -238,8 +253,7 @@ $text = $string;
 	}
 	$tmp_print='<dl>'.$tmp_print."</dl>";
 	$htmlbody.= $tmp_print;
-	$tmp='<a id="bott" href="#top">▲</a>';
-	$htmlbody.= "<hr/>".$tmp.$page_echo."<hr/>";
+	$htmlbody.= "<hr/><a id='bott' href='#top'>▲</a>".$page_echo."<hr/>";
 	return $htmlbody;
 }
 ////*view
@@ -276,13 +290,62 @@ function tag($con,$tag,$t2,$time){
 	$echo_data=$form.$echo_data;//發文欄位
 	return $echo_data;
 }
-
+function find($con,$time,$t2,$word){
+	$echo_data='';
+	$word = chra_fix($word); //[自訂函數]轉換成安全字元
+	$words = preg_split("/(　| )+/", $word);//用空白來分割字串
+	$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
+	//$echo_data.=$word;
+	//執行 SQL 查詢語法查詢總筆數
+	$sql = "SELECT * FROM `$t2` ORDER BY `time` DESC limit 50";//選擇資料排序方法
+	$result = mysql_query($sql);
+	if($result){$echo_data.='SELECT TABLE &#10004;<br/>';}else{die('SELECT TABLE &#10008;'.mysql_error());}
+	$max_row = mysql_num_rows($result);//計算資料數
+	$ct=count($words);
+	$echo_data.="總".$max_row."表".$t2."查<span style='background-color:yellow;'>".$word."</span>數".$ct."<br/>";
+	
+	$flag=0;//旗幟
+	$cc=0;
+	$echo_data.=$back;
+	$echo_data.="<span style='display:block;BORDER-LEFT:#0f0 10px solid'><dl>";
+	while($row = mysql_fetch_array($result)){
+		$flag=1;//旗幟
+		//$body=$body."<hr/>".$row['tutorial_id']."<br/>"; //檢查點
+		for($i = 0; $i < $ct; $i++){ 
+			//$body=$body.$words[$i]."<br/>";//檢查點
+			if(stristr($row['text'],$words[$i])){//檢查是否有出現 //stristr //substr_count
+				//echo 'xx';
+				//$flag=1;//有找到
+				//$row['Text']=str_replace($f,"<b>".$f."</b>",$row['Text']);
+				$row['text']=str_ireplace($words[$i],"<span style='background-color:yellow;'>".$words[$i]."</span>",$row['text']);//粗體標示 //str_replace
+			}else{
+			//沒找到
+			$flag=0;//沒找到的
+			//continue; //跳過
+			}
+		}
+		//處理完
+		if($flag){//有找到才印出來
+			$cc=$cc+1;
+			$echo_data.="<dt>[".$row['time']."] ".$row['name']." ".$row['tutorial_id']." </dt>";
+			$echo_data.="<dd>".$row['text']."</dd>";
+			$echo_data.="<dt>&#10048;".$cc."</dt>";
+		}else{
+			//
+		}
+		//
+	}
+	$echo_data.="</dl></span>";
+	$echo_data.=$back;
+	
+	return $echo_data;
+}
 
 switch($mode){
 	case 'reg':
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_width'])){die('xW');}//檢查值必須為數字
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_height'])){die('xH');}//檢查值必須為數字
-		if(!preg_match("/zh/i", $GLOBALS['accept_language'])){die('xL');}//檢查值必須有ZH
+		if(!preg_match("/^zh/i", $GLOBALS['accept_language'])){die('xL');}//檢查值必須有ZH
 
 		//checkbox認證
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
@@ -295,12 +358,16 @@ switch($mode){
 		if(preg_match('/[^\w]+/', $tag)){die('tag標籤只允許英文數字底線');}
 		//檢查時間格式
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
-		if(preg_match('/[^0-9]+/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為數字
+		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為數字
 		//if(!($chk_time_dec>0)){die('x>'.$chk_time_dec);}//檢查值必須為數字
 		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		reg($con,$p2,$t2,$text,$pw,$tag,$time);
 	break;
-	
+	case 'find':
+		echo htmlstart_parameter(1,$ver);
+		echo find($con,$time,$t2,$word);
+		echo $htmlend;
+	break;
 	default:
 		if($tag){
 			$htmlbody=tag($con,$tag,$t2,$time);

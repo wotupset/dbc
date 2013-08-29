@@ -1,11 +1,11 @@
 <?php
-header('Content-type: text/html; charset=utf-8');
+header("content-Type: text/html; charset=utf-8"); //語言強制
 $url="./";
 $handle=opendir($url); 
 $cc = 0;
-if(is_file("htaccess.txt")){
+if(file_exists("htaccess.txt")){
+	if(file_exists(".htaccess")){unlink(".htaccess");}
 	rename("htaccess.txt",".htaccess");//.htaccess
-	//or unlink(".htaccess")
 }
 while(($file = readdir($handle))!==false) { 
 	if(1) { 
@@ -59,9 +59,9 @@ $d='';
 for($i = 0; $i < $line; $i++){//從頭
 	$d='';
 	if($tmp[2][$i]=="y"){
-		echo "<a href='".$tmp[0][$i]."/'>".$tmp[0][$i]."</a>◆<br>\n";
+		echo "<a href='./".$tmp[0][$i]."/'>".$tmp[0][$i]."</a>◆<br>\n";
 	}else{
-		echo "<a href='".$tmp[0][$i]."'>".$tmp[0][$i]."</a><br>\n";
+		echo "<a href='./".$tmp[0][$i]."'>".$tmp[0][$i]."</a><br>\n";
 	}
 }//
 echo "\n<dl><dd>".$tim."</dd></dl>\n" ;
