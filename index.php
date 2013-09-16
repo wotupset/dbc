@@ -1,7 +1,20 @@
 <?php
 header('Content-type: text/html; charset=utf-8');
-require './dbchat/db_ac.php';
-require './db_config.php';//$time
+$handle=opendir("./"); $dir_in=""; $chk=0;
+while(($file = readdir($handle))!==false) { 
+	if(is_dir($file)){//只針對資料夾
+		if($file=="."||$file == ".."){
+			//什麼事都不做
+		}else{
+			if(preg_match('/^dbchat/', $file)){$dir_in=$file;$chk=$chk+1;}else{die("dir miss");} //檢驗$query_string格式
+		}
+	}
+} 
+closedir($handle); 
+if($chk>1){die("dir multi");}
+//echo $dir_in;
+require "./".$dir_in."/db_ac.php";
+require "./db_config.php";//$time
 if($p2==""){$p2=0;}
 if($t2==""){$t2='index';}
 //$phpself
