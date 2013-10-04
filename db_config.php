@@ -10,7 +10,7 @@ if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="130916dev0048std"; //版本?
+$ver="130930dev1532std"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -52,9 +52,9 @@ function htmlstart_parameter($go,$ver){
 	$box='';$box=md5(sha1($ver));//依版本號加密成MD5
 	$ver_color="#".substr($box,-6);//版本號的顏色
 
-	if($go){//1=不加入索引
+	if($go){//是否阻擋搜尋機器人快取 1=yes 0=no
 $tmp=<<<EOT
-\n<META NAME="ROBOTS" CONTENT="NOINDEX, FOLLOW">
+\n<META NAME="ROBOTS" CONTENT="noINDEX, FOLLOW">
 EOT;
 	}else{$tmp='';}
 //

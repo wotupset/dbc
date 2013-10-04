@@ -12,8 +12,12 @@ while(($file = readdir($handle))!==false) {
 } 
 closedir($handle); 
 if($chk>1){die("dir multi");}
+$tmp="./".$dir_in."/db_ac.php";
+if(!is_file($tmp)){die("ac miss");}
+
 //echo $dir_in;
-require "./".$dir_in."/db_ac.php";
+require $tmp;
+if(!isset($dbuser)){die("die");}
 require "./db_config.php";//$time
 if($p2==""){$p2=0;}
 if($t2==""){$t2='index';}
@@ -108,7 +112,9 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	$idseed="ㄎㄎ";
 	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.gmdate("ymd", $time)),'id'),-8);
 	//if($GLOBALS['screen_width']&&$GLOBALS['screen_height']){}
-	$name=$name.":".$GLOBALS['screen_width'].$GLOBALS['accept_language'].$GLOBALS['screen_height'];
+	//$name=$name;
+	//表板密碼沒用到 所以改存使用者資訊
+	$pw=":".$GLOBALS['screen_width'].$GLOBALS['accept_language'].$GLOBALS['screen_height'].":";
 	$ban_name=array('9wCbz69Y','wtFhKRsc');
 	foreach($ban_name as $k => $v){if($name==$v){die('');}}
 	////
@@ -281,7 +287,7 @@ function tag($con,$tag,$t2,$time){
 	$cc=0;$cc2=0;
 	$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
 	$echo_data=''; //
-	$echo_data.="<span style='display:block;BORDER-LEFT:#0f0 10px solid'><dl>";
+	$echo_data.="<span style='display:block;BORDER-LEFT:#0f0 10px solid;min-height:10px;'><dl>";
 	while($row = mysql_fetch_array($result)){
 		if($cc>=$limit){break;}//顯示數量不超過limit
 		$cc2=$limit-$cc;
@@ -297,7 +303,7 @@ function tag($con,$tag,$t2,$time){
 		$echo_data.="<dt>".$cc2."&#10048;</dt>";
 		$cc=$cc+1;
 	}
-	$echo_data.="</dl></span>";
+	$echo_data.="</dl></span>";//&nbsp;
 	$form=$GLOBALS['form'];
 	$echo_data='在'.$t2.'標'.$tag.'有'.$rowsmax.'現'.$cc.'<br>'.$back.$echo_data.$back;
 	$echo_data=$form.$echo_data;//發文欄位
@@ -382,7 +388,8 @@ switch($mode){
 		echo $htmlend;
 	break;
 	default:
-		if($tag){
+		if($tag){//有tag
+			if(preg_match('/[^\w]+/', $tag)){die('tag標籤只允許英文數字底線');}
 			$htmlbody=tag($con,$tag,$t2,$time);
 			echo htmlstart_parameter(1,$ver);
 			echo $htmlbody;
@@ -391,7 +398,7 @@ switch($mode){
 			//echo gmdate("Ymd-His", $time)."<br/>";
 			//echo ''.$pw;
 			$htmlbody=view($con,$p2,$t2,$time);
-			echo htmlstart_parameter(0,$ver);
+			echo htmlstart_parameter(0,$ver);//可以index
 			echo $htmlbody;
 			echo $htmlend;
 		}
