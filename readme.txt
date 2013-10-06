@@ -1,7 +1,7 @@
 下午 11:05 2013/8/29
 
-要在手動在dbchat資料夾建立一個db_ac.php檔案
-內容
+在dbchat資料夾下的db_ac.php檔案
+要手動修改內容
 <?php
 $dbhost = '資料庫主機位置';
 $dbuser = '資料庫使用者';
