@@ -315,8 +315,9 @@ function find($con,$time,$t2,$word){
 	$words = preg_split("/(　| )+/", $word);//用空白來分割字串
 	$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
 	//$echo_data.=$word;
+	$time2 = $time - 365*24*60*60;
 	//執行 SQL 查詢語法查詢總筆數
-	$sql = "SELECT * FROM `$t2` ORDER BY `time` DESC limit 50";//選擇資料排序方法
+	$sql = "SELECT * FROM `$t2` WHERE `time`>$time2 ORDER BY `time`  DESC";//選擇資料排序方法
 	$result = mysql_query($sql);
 	if($result){$echo_data.='SELECT TABLE &#10004;<br/>';}else{die('SELECT TABLE &#10008;'.mysql_error());}
 	$max_row = mysql_num_rows($result);//計算資料數
