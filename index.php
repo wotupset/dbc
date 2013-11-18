@@ -42,7 +42,7 @@ $form=<<<EOT
 <span style="float: left;text-align: left;">
 	<form id='form1' action='$t_url' method='post' onsubmit="return check2();" autocomplete="off">
 		<input type="hidden" name="mode" value="reg">
-		內文<textarea name="text" cols="48" rows="4" wrap=soft></textarea><br/>
+		內文<textarea name="text" id="text" cols="48" rows="4" wrap=soft></textarea><br/>
 		<div id='timedown_div'>
 			標籤<input type="text" name="tag" maxlength="16" size="16" value="$tag"/>
 			<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="1" value=""/>
@@ -83,6 +83,15 @@ function check(){//submit
 function check2(){//onsubmit
 	document.getElementById("send").disabled=true;
 	document.getElementById("send").style.backgroundColor="#ff0000";
+	//
+	var tmp;
+	var regStr = 'http://';
+	var re = new RegExp(regStr,'gi');
+	tmp = document.getElementById("text").value;
+	//alert(regStr);
+	tmp = tmp.replace(re,"ttpp//");//有些免空會擋過多的http字串
+	document.getElementById("text").value =tmp;
+	document.getElementById("form1").submit();
 }
 var t=60*60;
 function timedown(){
@@ -108,6 +117,13 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	setcookie("pwcookie", $pw,$time+7*24*3600); //存入原始的密碼 7天過期
 	if($pw==''){$pw=$ip;}//沒輸入密碼 用IP代替
 	$pw=substr(crypt(md5($pw.gmdate("ymd", $time)),'id'),-8);
+	//修正//必要的變色
+	$cell=$text;
+	$cell = preg_replace("/\r\n/","\n",$cell);
+	$cell = preg_replace("/http\:\/\//", "ttpp//", $cell);//
+	$cell = preg_replace("/ttpp\/\//", "http://", $cell);//有些免空會擋過多的http字串
+	$text=$cell;
+	$count_http=substr_count($cell,'http');//計算連結數量
 	////
 	$idseed="ㄎㄎ";
 	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.gmdate("ymd", $time)),'id'),-8);
