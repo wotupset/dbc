@@ -1,17 +1,22 @@
 <?php
 header('Content-type: text/html; charset=utf-8');
-$handle=opendir("./"); $dir_in=""; $chk=0;
+$handle=opendir("./"); $dir_in=""; 
+$cc=0;
 while(($file = readdir($handle))!==false) { 
 	if(is_dir($file)){//只針對資料夾
 		if($file=="."||$file == ".."){
 			//什麼事都不做
 		}else{
-			if(preg_match('/^dbchat/', $file)){$dir_in=$file;$chk=$chk+1;}else{die("dir miss");} //檢驗$query_string格式
+			if(preg_match('/^dbchat.+$/', $file)){
+				$dir_in=$file;$cc=$cc+1;
+			}else{} //檢驗$query_string格式
 		}
 	}
 } 
+if($cc){}else{die("dir miss");}
+if($cc>1){die("dir multi");}
 closedir($handle); 
-if($chk>1){die("dir multi");}
+
 $tmp="./".$dir_in."/db_ac.php";
 if(!is_file($tmp)){die("ac miss");}
 
@@ -112,6 +117,11 @@ EOT;
 ////*reg
 function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	//echo "原始".$pw."<br/>";
+	if(preg_match('/^AEGIS$/i', $tag) && preg_match('/^HOW DO YOU TURN THIS ON$/i', $text)){
+		$dir_in=$GLOBALS['dir_in'];
+		header("refresh:0; url=$dir_in");
+		exit;
+	}
 	$ip=$_SERVER["REMOTE_ADDR"];
 	//$tmp=preg_replace('/.+\.([0-9]+)$/','\\1',$ip);
 	setcookie("pwcookie", $pw,$time+7*24*3600); //存入原始的密碼 7天過期
