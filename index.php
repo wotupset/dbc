@@ -94,7 +94,7 @@ function check2(){//onsubmit
 	var re = new RegExp(regStr,'gi');
 	tmp = document.getElementById("text").value;
 	//alert(regStr);
-	tmp = tmp.replace(re,"ttpp//");//有些免空會擋過多的http字串
+	tmp = tmp.replace(re,"Ettpp//");//有些免空會擋過多的http字串
 	document.getElementById("text").value =tmp;
 	document.getElementById("form1").submit();
 }
@@ -130,8 +130,8 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	//修正//必要的變色
 	$cell=$text;
 	$cell = preg_replace("/\r\n/","\n",$cell);
-	$cell = preg_replace("/http\:\/\//", "ttpp//", $cell);//
-	$cell = preg_replace("/ttpp\/\//", "http://", $cell);//有些免空會擋過多的http字串
+	$cell = preg_replace("/http\:\/\//", "Ettpp//", $cell);//
+	$cell = preg_replace("/Ettpp\/\//", "http://", $cell);//有些免空會擋過多的http字串
 	$text=$cell;
 	$count_http=substr_count($cell,'http');//計算連結數量
 	////
