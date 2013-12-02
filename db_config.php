@@ -10,7 +10,7 @@ if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="131125dev0525std"; //版本?
+$ver="131203nyaa0624"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -31,7 +31,7 @@ function newtable($t){//資料表格式
 	`name` varchar(255),
 	`text` varchar(65535) NOT NULL,
 	`age` int,
-	`tag` varchar(16),
+	`tag` varchar(40),
 	`uid` varchar(255),
 	`pw` varchar(255),
 	`tutorial_id` INT NOT NULL AUTO_INCREMENT,
@@ -39,15 +39,7 @@ function newtable($t){//資料表格式
 	)ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci";
 	return $sql;
 }
-
-
-
-
-$htmlend=<<<EOT
-\n<br/>
-<a href='../'>../</a> <h2>$ver</h2> </body></html>
-EOT;
-
+//**********
 function htmlstart_parameter($go,$ver){
 	$box='';$box=md5(sha1($ver));//依版本號加密成MD5
 	$ver_color="#".substr($box,-6);//版本號的顏色
@@ -71,19 +63,103 @@ $htmlstart=<<<EOT
 <META http-equiv="Content-Style-Type" content="text/css">$tmp
 <STYLE TYPE="text/css"><!--
 body { font-family:"細明體"; }
-h1 {color:$ver_color;font-size:small;display:inline;}
-h2 {color:$ver_color;font-size:small;display:inline;}
+h1,h2,h3 {color:$ver_color;font-size:small;display:inline;}
 A:hover  {color:#000080;background-color:#fafad2;text-decoration:none;}
 blockquote {display:block; padding: 0px; margin:0; float:left; margin-left: 30px; BORDER-LEFT:#f00 10px solid; }
 --></STYLE>
 <title>$phphost</title>
 </head>
 <body>
+<span style="float: right;  text-align: right;"><a href='#bott' id='top'>■頂端▼底端</a></span>
+
 EOT;
 //
 	return $htmlstart;
 }
+//**********
+$htmlend=<<<EOT
+<span style="float: right;  text-align: right;"><a href='#top' id='bott'>■底端▲頂端</a></span>
+<a href='../'>../</a> <h3>$ver</h3> </body></html>
+EOT;
+//**********
+if(gmdate('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示
+$uid=uniqid(chr(rand(97,122)),true);//建立唯一ID
+$chk_time_key='abc123';
+$text_org=(string)$time;
+$chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
+$chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
+$form=<<<EOT
+<span style="float: left;text-align: left;">
+	<form id='form1' action='$t_url' method='post' onsubmit="return check2();" autocomplete="off">
+		<input type="hidden" name="mode" value="reg">
+		內文<textarea name="text" id="text" cols="48" rows="4" wrap=soft></textarea><br/>
+		<div id='timedown_div'>
+			標籤<input type="text" name="tag" size="16" value="$tag"/>
+			<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="1" value=""/>
+			<input type="text" id="screen_width" name="screen_width" maxlength="32" size="3" value=""/>
+			<input type="text" id="screen_height" name="screen_height" maxlength="32" size="3" value=""/>
+			<input type="text" id="accept_language" name="accept_language" maxlength="32" size="3" value=""/>
+			<span id='timedown_span'></span>
+		</div>
+		<div style="position: relative; border:#000 1px solid; width: 100%; height: 20px;">
+		<span style="position: absolute; color: blue; border:#000 1px solid; left:1px;top:1px;">
+			<label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
+			<input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
+			<h2>$t2</h2> $tmp
+		</span>
+		</div>
+	</form>
+</span>
+<span style="float: right;  text-align: right;">
+	<form id='form2' action='$t_url' method='post' autocomplete="off">
+		<input type="hidden" name="mode" value="find">
+		<input type="text" name="word" maxlength="32" size="16" placeholder="find" value=""/>
+		<input type="submit" value="送出"/>  
+	</form>
+</span>
 
+
+<script language="Javascript">
+// checked="checked"
+document.getElementById("screen_width").value=window.screen.width;
+document.getElementById("screen_height").value=window.screen.height;
+document.getElementById("accept_language").value=navigator.language||navigator.browserLanguage;
+
+document.getElementById("chk130711").checked=true;
+function check(){//submit
+	document.getElementById("send").value="稍後";
+	document.getElementById("exducrtj").value="$chk_time_enc";
+}
+function check2(){//onsubmit
+	document.getElementById("send").disabled=true;
+	document.getElementById("send").style.backgroundColor="#ff0000";
+	//
+	var tmp;
+	var regStr = 'http://';
+	var re = new RegExp(regStr,'gi');
+	tmp = document.getElementById("text").value;
+	//alert(regStr);
+	tmp = tmp.replace(re,"Ettpp//");//有些免空會擋過多的http字串
+	document.getElementById("text").value =tmp;
+	document.getElementById("form1").submit();
+}
+var t=60*60;
+function timedown(){
+	var st;
+	document.getElementById("timedown_span").innerHTML=t;
+	if(t){
+		t=t-1;
+		st=setTimeout("timedown()",1000);
+	}else{
+		clearTimeout(st);
+		document.getElementById("timedown_div").style.backgroundColor="#E04000";
+	}
+}
+timedown();
+</script>
+<br clear="both"/>
+EOT;
+//**********
 ////[自訂函數]轉換成安全字元
 function chra_fix($tmp_xx){
 	$tmp_xx=trim($tmp_xx);

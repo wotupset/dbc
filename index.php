@@ -35,84 +35,8 @@ unset($tmp);
 //echo gmdate('Y/m/d(D) H:i:s', time()+60*60*8);
 //echo time().date('Y/m/d(D) H:i:s', time());
 //gmdate('H',$time)=="14" && 
-if(gmdate('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示
 
-$uid=uniqid(chr(rand(97,122)),true);//建立唯一ID
-$chk_time_key='abc123';
-$text_org=(string)$time;
-$chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
-$chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
 
-$form=<<<EOT
-<span style="float: left;text-align: left;">
-	<form id='form1' action='$t_url' method='post' onsubmit="return check2();" autocomplete="off">
-		<input type="hidden" name="mode" value="reg">
-		內文<textarea name="text" id="text" cols="48" rows="4" wrap=soft></textarea><br/>
-		<div id='timedown_div'>
-			標籤<input type="text" name="tag" maxlength="16" size="16" value="$tag"/>
-			<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="1" value=""/>
-			<input type="text" id="screen_width" name="screen_width" maxlength="32" size="3" value=""/>
-			<input type="text" id="screen_height" name="screen_height" maxlength="32" size="3" value=""/>
-			<input type="text" id="accept_language" name="accept_language" maxlength="32" size="3" value=""/>
-			<span id='timedown_span'></span>
-		</div>
-		<div style="position: relative; border:#000 1px solid; width: 100%; height: 20px;">
-		<span style="position: absolute; color: blue; border:#000 1px solid; left:1px;top:1px;">
-			<label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
-			<input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
-			<h1>$t2</h1> $tmp
-		</span>
-		</div>
-	</form>
-</span>
-<span style="float: right;  text-align: right;">
-	<form id='form2' action='$t_url' method='post' autocomplete="off">
-		<input type="hidden" name="mode" value="find">
-		<input type="text" name="word" maxlength="32" size="16" placeholder="find" value=""/>
-		<input type="submit" value="送出"/>  
-	</form>
-</span>
-
-<br clear="both"/><hr/>
-<script language="Javascript">
-// checked="checked"
-document.getElementById("screen_width").value=window.screen.width;
-document.getElementById("screen_height").value=window.screen.height;
-document.getElementById("accept_language").value=navigator.language||navigator.browserLanguage;
-
-document.getElementById("chk130711").checked=true;
-function check(){//submit
-	document.getElementById("send").value="稍後";
-	document.getElementById("exducrtj").value="$chk_time_enc";
-}
-function check2(){//onsubmit
-	document.getElementById("send").disabled=true;
-	document.getElementById("send").style.backgroundColor="#ff0000";
-	//
-	var tmp;
-	var regStr = 'http://';
-	var re = new RegExp(regStr,'gi');
-	tmp = document.getElementById("text").value;
-	//alert(regStr);
-	tmp = tmp.replace(re,"Ettpp//");//有些免空會擋過多的http字串
-	document.getElementById("text").value =tmp;
-	document.getElementById("form1").submit();
-}
-var t=60*60;
-function timedown(){
-	var st;
-	document.getElementById("timedown_span").innerHTML=t;
-	if(t){
-		t=t-1;
-		st=setTimeout("timedown()",1000);
-	}else{
-		clearTimeout(st);
-		document.getElementById("timedown_div").style.backgroundColor="#E04000";
-	}
-}
-timedown();
-</script>
-EOT;
 	
 ////*reg
 function reg($con,$p2,$t2,$text,$pw,$tag,$time){
@@ -142,10 +66,8 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	//表板密碼沒用到 所以改存使用者資訊
 	$pw=":".$GLOBALS['screen_width'].$GLOBALS['accept_language'].$GLOBALS['screen_height'].":";
 	$ban_name=array('9wCbz69Y','wtFhKRsc');
-	foreach($ban_name as $k => $v){if($name==$v){die('');}}
-	////
-	if($text==""){die("無內文");}
-	
+	foreach($ban_name as $k => $v){if($name==$v){die('ban_name');}}
+	if(trim($text)==""){die("無內文");}
 	$text=chra_fix($text);//[自訂函數]轉換成安全字元
 	$maxlen=strlen($text);//計算字數
 	$maxline=substr_count($text,"<br/>");
@@ -155,6 +77,9 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	$maxline=count($tmp);//計算行數
 	unset($tmp);//抓到資料後清空陣列
 	*/
+	//加長tag長度
+	$sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
+	$order=mysql_query($sql);
 	$sql = "SELECT * FROM `$t2` ORDER BY `time` DESC LIMIT 10"; //抓出最新10篇比較內容
 	$result = mysql_query($sql);
 	if(mysql_error()){die($t2."不存在");}//有錯誤就停止
@@ -253,7 +178,7 @@ $htmlbody.= $form;
 	}
 	$page_echo=$page_zero.$page_echo;//第0頁接在前面
 	$page_echo=$max_print."筆".$show_new."見".$page_echo;
-	$htmlbody.= '<a id="top" href="#bott">▼</a>'.$page_echo."<hr/>";
+	$htmlbody.= "<hr/>$page_echo<hr/>";
 	if($p2==0){
 		$sql = "SELECT * FROM `$t2` ORDER BY `age` DESC LIMIT $show_new";//最新頁
 	}else{
@@ -298,7 +223,7 @@ $text = $string;
 	}
 	$tmp_print='<dl>'.$tmp_print."</dl>";
 	$htmlbody.= $tmp_print;
-	$htmlbody.= "<hr/><a id='bott' href='#top'>▲</a>".$page_echo."<hr/>";
+	$htmlbody.= "<hr/>$page_echo<hr/>";
 	return $htmlbody;
 }
 ////*view
@@ -331,7 +256,7 @@ function tag($con,$tag,$t2,$time){
 	}
 	$echo_data.="</dl></span>";//&nbsp;
 	$form=$GLOBALS['form'];
-	$echo_data='在'.$t2.'標'.$tag.'有'.$rowsmax.'現'.$cc.'<br>'.$back.$echo_data.$back;
+	$echo_data="<h1>$tag</h1>@$t2找到$rowsmax顯示$cc<br/>$back$echo_data$back";
 	$echo_data=$form.$echo_data;//發文欄位
 	return $echo_data;
 }
@@ -392,20 +317,14 @@ switch($mode){
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_width'])){die('xW');}//檢查值必須為數字
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_height'])){die('xH');}//檢查值必須為數字
 		if(!preg_match("/^zh/i", $GLOBALS['accept_language'])){die('xL');}//檢查值必須有ZH
-
-		//checkbox認證
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
-		if($chk130711!='確認'){die($chk130711);}
-		//檢查tag格式
-		//if($tag){die($tag);}$tag=$tagx;
-		$tag=trim($tag);
-		$tag= preg_replace("/\#/", "", $tag);//去掉意外加入的#號 
-		if(strlen($tag)>16){die('tag標籤最多16個半形英數');}
-		if(preg_match('/[^\w]+/', $tag)){die('tag標籤只允許英文數字底線');}
+		if($chk130711!='確認'){die($chk130711);} 
+		if(strlen($tag)>60){die('tag標籤最多60個半形英數');}
+		//要考慮沒輸入tag的情況
+		if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{1,60}/');}
 		//檢查時間格式
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
-		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為數字
-		//if(!($chk_time_dec>0)){die('x>'.$chk_time_dec);}//檢查值必須為數字
+		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為10位數
 		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		reg($con,$p2,$t2,$text,$pw,$tag,$time);
 	break;
@@ -416,7 +335,7 @@ switch($mode){
 	break;
 	default:
 		if($tag){//有tag
-			if(preg_match('/[^\w]+/', $tag)){die('tag標籤只允許英文數字底線');}
+			if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{0,60}/');}
 			$htmlbody=tag($con,$tag,$t2,$time);
 			echo htmlstart_parameter(1,$ver);
 			echo $htmlbody;
@@ -427,6 +346,8 @@ switch($mode){
 			$htmlbody=view($con,$p2,$t2,$time);
 			echo htmlstart_parameter(0,$ver);//可以index
 			echo $htmlbody;
+			
+
 			echo $htmlend;
 		}
 	break;
