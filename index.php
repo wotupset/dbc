@@ -236,7 +236,6 @@ function tag($con,$tag,$t2,$time){
 	if($rowsmax>50){$limit=50;}else{$limit=$rowsmax;}//實際取50就好
 	
 	$cc=0;$cc2=0;
-	$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
 	$echo_data=''; //
 	$echo_data.="<span style='display:block;BORDER-LEFT:#0f0 10px solid;min-height:10px;'><dl>";
 	while($row = mysql_fetch_array($result)){
@@ -256,7 +255,8 @@ function tag($con,$tag,$t2,$time){
 	}
 	$echo_data.="</dl></span>";//&nbsp;
 	$form=$GLOBALS['form'];
-	$echo_data="<h1>$tag</h1>@$t2找到$rowsmax顯示$cc<br/>$back$echo_data$back";
+	$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
+	$echo_data="<hr><h1>$tag</h1>在".$t2."找到".$rowsmax."個，顯示上限".$limit."<br/>$back$echo_data$back";
 	$echo_data=$form.$echo_data;//發文欄位
 	return $echo_data;
 }

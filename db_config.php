@@ -78,6 +78,10 @@ EOT;
 }
 //**********
 $htmlend=<<<EOT
+\n<span style='z-index:10;position:fixed;bottom:40%;right:10px;border:1px solid #000;'>
+<a href='#top'>▲頂端</a><br/>
+<a href='#bott'>▼底端</a>
+</span>
 <span style="float: right;  text-align: right;"><a href='#top' id='bott'>■底端▲頂端</a></span>
 <a href='../'>../</a> <h3>$ver</h3> </body></html>
 EOT;
