@@ -8,9 +8,10 @@ if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 //
 //require 'db_config_pw.php';//獨立版無管理功能不使用密碼
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
+$GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="131203nyaa0624"; //版本?
+$ver="131205beta0602"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -27,15 +28,15 @@ if(mysql_error()){die(mysql_error());}else{$db_chk='mysql_connect &#10004 <br/>'
 function newtable($t){//資料表格式
 	$sql = "CREATE TABLE IF NOT EXISTS `$t`
 	(
-	`time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	`name` varchar(255),
 	`text` varchar(65535) NOT NULL,
 	`age` int,
 	`tag` varchar(40),
 	`uid` varchar(255),
 	`pw` varchar(255),
-	`tutorial_id` INT NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY ( tutorial_id )
+	`auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`auto_id` INT NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY ( auto_id )
 	)ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci";
 	return $sql;
 }
@@ -63,7 +64,7 @@ $htmlstart=<<<EOT
 <META http-equiv="Content-Style-Type" content="text/css">$tmp
 <STYLE TYPE="text/css"><!--
 body { font-family:"細明體"; }
-h1,h2,h3 {color:$ver_color;font-size:small;display:inline;}
+h1,h2,h3 {color:$ver_color;font-size:medium;display:inline;}
 A:hover  {color:#000080;background-color:#fafad2;text-decoration:none;}
 blockquote {display:block; padding: 0px; margin:0; float:left; margin-left: 30px; BORDER-LEFT:#f00 10px solid; }
 --></STYLE>
@@ -83,7 +84,7 @@ $htmlend=<<<EOT
 <a href='#bott'>▼底端</a>
 </span>
 <span style="float: right;  text-align: right;"><a href='#top' id='bott'>■底端▲頂端</a></span>
-<a href='../'>../</a> <h3>$ver</h3> </body></html>
+<a href='../'>../</a> <h2>$t2</h2> <h3>$ver</h3> </body></html>
 EOT;
 //**********
 if(gmdate('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示
@@ -92,6 +93,7 @@ $chk_time_key='abc123';
 $text_org=(string)$time;
 $chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
 $chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
+//**********
 $form=<<<EOT
 <span style="float: left;text-align: left;">
 	<form id='form1' action='$t_url' method='post' onsubmit="return check2();" autocomplete="off">
@@ -109,7 +111,7 @@ $form=<<<EOT
 		<span style="position: absolute; color: blue; border:#000 1px solid; left:1px;top:1px;">
 			<label><input type="checkbox" id="chk130711" name="chk130711">確認</label>
 			<input type="submit" id='send' name="send" value="送出" onclick='check();'/>  
-			<h2>$t2</h2> $tmp
+			$tmp
 		</span>
 		</div>
 	</form>
@@ -238,8 +240,76 @@ function about_time($go,$time){
 	}
 	return $go;
 }
-
-//*
+//**********
+//$con,$t2,$tag,$p2,$num
+function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱 
+	$order="SELECT * FROM `$table` WHERE `tag` = '$tag' ORDER BY `age` DESC"; //取得符合tag的文章
+	$sql_result = mysql_query($order); //列出相符的tag
+	if(mysql_error()){die("讀取失敗 可能是表單不存在");}//有錯誤就停止
+	$rows_max = mysql_num_rows($sql_result);//取得資料庫總筆數
+	$db_all_page=ceil($rows_max/$num);//總頁數 //返回不小于 x 的下一个整数
+	//(48/25) = 取2頁
+	$page_bar=''; $cc=0;
+	for($i=0;$i<$db_all_page;$i++){
+		$cc=$cc+1;
+		$cc_pad=str_pad($cc,3,"0",STR_PAD_LEFT);
+		$page_bar_tmp="<a href='".$phpself."?t2=".$table."&tag=".$tag."&p2=".$cc."'>[".$cc_pad."]</a>";
+		if($cc==$p2){
+			$page_bar_tmp="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'>".$page_bar_tmp."</span>";
+		}else{}
+		$page_bar.=$page_bar_tmp;
+	}
+	$page_bar="在<h1>".$table."</h1>有".$rows_max."個<h2>".$tag."</h2>標籤被找到<br/>".$page_bar."";
+	$page_bar="\n<hr/>".$page_bar."<hr/>\n";
+	$GLOBALS['page_bar']=$page_bar;
+	//**********
+	$num_start_at = $num*($p2-1)+1;//計算起始筆數
+	//50*(1-1)+1 //第1頁 每頁50篇 首篇=1
+	//50*(2-1)+1 //第2頁 每頁50篇 首篇=51
+	$tmp_str_arr=array(); $cc=0; $cc2=0;
+	while($row = mysql_fetch_array($sql_result)){//將範圍內的資料列出
+		$cc=$cc+1;
+		if( ($cc >= $num_start_at)&&($cc < $num_start_at+$num) ){
+			$cc2=$cc2+1;
+			//寫入到陣列中
+			$tmp_str_arr[$cc2]['cc']=$cc."/".$cc2;
+			$tmp_str_arr[$cc2]['name']=$row['name'];
+			$tmp_str_arr[$cc2]['text']=$row['text'];
+			$tmp_str_arr[$cc2]['age']=$row['age'];
+			$tmp_str_arr[$cc2]['tag']=$row['tag'];
+			$tmp_str_arr[$cc2]['uid']=$row['uid'];
+			$tmp_str_arr[$cc2]['pw']=$row['pw'];
+			$tmp_str_arr[$cc2]['auto_time']=$row['auto_time'];
+			$tmp_str_arr[$cc2]['auto_id']=$row['auto_id'];
+		}
+	}
+	//$x=print_r($tmp_str_arr,true);
+	
+	$x=$tmp_str_arr;
+	return $x;
+}
+//**********
+function text_form($name,$text,$age,$tag,$uid,$pw,$auto_time,$auto_id){ //
+	$box='';
+	$box.="<dt>";
+	$box.="[".gmdate("Y-m-d H:i:s",$age)."] ";
+	$box.="".$name." ";
+	$box.=" ".$auto_id." ";
+	$box.="</dt>";
+	//$text=chra_fix($text);
+	//bbcode()
+	$string = $text; //bbcode目前只使用連結功能
+	$string = preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target='_blank'>\\2\\3</a>", $string);
+	$string = preg_replace("/\n/si", "<br/>", $string);
+	$text = $string;
+	//bbcode(/)
+	$box.="\n<dd>".$text."</dd>";//內文 //縮排效果
+	$box.="\n<dt>$cc&#10048;</dt>"; //尾巴的梅花
+	$box="\n".$box."\n";
+	$x=$box;
+	return $x;
+}
+//**********
 function passport_encrypt($txt, $key) {
 	srand((double)microtime() * 1000000);
 	$encrypt_key = md5(rand(0, 32000));
