@@ -40,7 +40,13 @@ unset($tmp);
 //echo time().date('Y/m/d(D) H:i:s', time());
 //gmdate('H',$time)=="14" && 
 
-
+$sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
+$order=mysql_query($sql);
+$sql = "ALTER TABLE `$t2` CHANGE `time` `auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";// 
+$order=mysql_query($sql);
+$sql = "ALTER TABLE `$t2` CHANGE `tutorial_id` `auto_id` INT NOT NULL AUTO_INCREMENT";// 
+$order=mysql_query($sql);
+//**********
 	
 ////*reg
 function reg($con,$p2,$t2,$text,$pw,$tag,$time){
@@ -122,13 +128,7 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 
 ////view
 function view($con,$p2,$t2,$time){
-	$sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
-	$order=mysql_query($sql);
-	$sql = "ALTER TABLE `$t2` CHANGE `time` `auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";// 
-	$order=mysql_query($sql);
-	$sql = "ALTER TABLE `$t2` CHANGE `tutorial_id` `auto_id` INT NOT NULL AUTO_INCREMENT";// 
-	$order=mysql_query($sql);
-	//**********
+
 	////檢查名為index的table是否存在 不存在則建立
 	$sql="SHOW TABLE STATUS";
 	$result = mysql_query($sql); //mysql_list_tables($dbname)
@@ -186,7 +186,6 @@ $form=$GLOBALS['form'];
 		}
 	}
 	$page_echo=$page_zero.$page_echo;//第0頁接在前面
-	//$page_bar="在<h1>".$table."</h1>有".$rows_max."個<h2>".$tag."</h2>標籤被找到<br/>".$page_bar."";
 	$page_echo="在<h1>".$t2."</h1>有".$max_print."個項目被找到<br/>".$page_echo;
 	$htmlbody.= "<hr/>$page_echo<hr/>";
 	if($p2==0){
@@ -240,26 +239,26 @@ $text = $string;
 //$con,$t2,$tag,$p2,$num
 function tag($con,$t2,$tag,$p2,$num){
 	$db_arr=db_page($con,$t2,$tag,$p2,$num);//自訂函數 //依頁數取範圍資料
+	//arr[0] = 範圍資料 //arr[1]=分頁bar
 	$echo_data='';
 	$arr_ct=count($db_arr);
 	$cc=0;
 	for($i=0;$i<$arr_ct;$i++){
 		$cc=$cc+1;
-		$echo_data.="編號".$db_arr[$cc]['cc']."<br>";
-		$echo_data.=text_form($db_arr[$cc]['name'],
-		                      $db_arr[$cc]['text'],
-		                      $db_arr[$cc]['age'],
-		                      $db_arr[$cc]['tag'],
-		                      $db_arr[$cc]['uid'],
-		                      $db_arr[$cc]['pw'],
-		                      $db_arr[$cc]['auto_time'],
-		                      $db_arr[$cc]['auto_id']);//自訂函數 //輸出格式
+		//$echo_data.="編號".$db_arr[0][$cc]['cc']."<br>";
+		$echo_data.=text_form($db_arr[0][$cc]['name'],
+		                      $db_arr[0][$cc]['text'],
+		                      $db_arr[0][$cc]['age'],
+		                      $db_arr[0][$cc]['tag'],
+		                      $db_arr[0][$cc]['uid'],
+		                      $db_arr[0][$cc]['pw'],
+		                      $db_arr[0][$cc]['auto_time'],
+		                      $db_arr[0][$cc]['auto_id']);//自訂函數 //輸出格式
 	}
 	//頁數切換欄
 	$echo_data="<span style='display:block;BORDER-LEFT:#0f0 10px solid;min-height:10px;'>".$echo_data."</span>";
-	$tmp_str="<a href='".$GLOBALS['phpself']."?t2=".$t2."'>←".$t2."</a>";
 	$echo_data=$tmp_str.$echo_data.$tmp_str;
-	$echo_data="".$GLOBALS['page_bar']."<dl>".$echo_data."</dl>".$GLOBALS['page_bar']."";
+	$echo_data="".$db_arr[1]."<dl>".$echo_data."</dl>".$db_arr[1]."";
 	return $echo_data;
 }
 function find($con,$time,$t2,$word){
