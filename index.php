@@ -38,7 +38,7 @@ unset($tmp);
 //echo gmdate('Y/m/d(D) H:i:s', time()+60*60*8);
 //echo time().date('Y/m/d(D) H:i:s', time());
 //gmdate('H',$time)=="14" && 
-//**********初始化 或是修正
+//**********資料庫初始化 或是修正
 ////檢查名為index的table是否存在 不存在則建立
 $sql="SHOW TABLE STATUS";
 $result = mysql_query($sql); //mysql_list_tables($dbname)
@@ -154,17 +154,9 @@ function view($con,$p2,$t2,$time){
 	$show=100;//歷史頁秀出?筆資料
 	$all_p = ceil($max/$show);//計算留言版所有頁數
 	$show_s = $show*($p2-1);//計算起始筆數
-	if($p2>$all_p||$p2<0||preg_match("/[^0-9]/",$p2)){
-		//$p2=0;
-		die('!xPAGE');
-	}
-
-
-
-//$tmp=gmdate('H', $time);
-$htmlbody='';
-$form=$GLOBALS['form'];
-//$htmlbody.= $form;
+	if($p2>$all_p||$p2<0||preg_match("/[^0-9]/",$p2)){die('頁數有誤');}
+	//$tmp=gmdate('H', $time);
+	$htmlbody='';
 	$page_echo='';
 	$max_print=(string)$max;
 	for($i=0; $i<=$all_p; $i++){//利用迴圈列所有頁數
@@ -238,46 +230,78 @@ $text = $string;
 }
 ////*view
 //$con,$t2,$tag,$p2,$num
-function tag($con,$t2,$tag,$p2,$num){
-	$db_arr=db_page($con,$t2,$tag,$p2,$num);//自訂函數 //依頁數取範圍資料
+function tag($con,$t2,$tag,$p2){
+	if($p2==0){
+		$num=5;//每頁25篇
+		$db_page2=db_page($con,$t2,$tag,$p2,$num);//自訂函數 //依頁數取範圍資料
+		$db_page=$db_page2[0];
+	}else{
+		$num=25;//每頁25篇
+		$db_page2=db_page($con,$t2,$tag,$p2,$num);//自訂函數 //依頁數取範圍資料
+		$db_page=$db_page2[0];
+	}
+
+	$num=25;//每頁25篇
+	$db_page_bar2=db_page_bar($con,$t2,$tag,$p2,$num); //製作分頁
+	$db_page_bar=$db_page_bar2[0];
+	$rows_max=$db_page_bar2[1];
+	if($p2==0){
+		$db_page_bar_tmp="<a href='".$phpself."?t2=".$t2."&tag=".$tag."&p2=0'>[最新]</a>";
+		$db_page_bar_tmp="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'>".$db_page_bar_tmp."</span>";
+	}else{
+		$db_page_bar_tmp="<a href='".$phpself."?t2=".$t2."&tag=".$tag."&p2=0'>[最新]</a>";
+	}
+	$db_page_bar=$db_page_bar_tmp.$db_page_bar;
+	$db_page_bar="在<a href='".$phpself."?t2=".$t2."'>".$t2."</a>有".$rows_max."個<h1>".$tag."</h1>標籤被找到<br/>".$db_page_bar."";
+	$db_page_bar="\n<hr/>".$db_page_bar."<hr/>\n";
 	//arr[0] = 範圍資料 //arr[1]=分頁bar
 	$echo_data='';
-	$arr_ct=count($db_arr[0]);
+	$arr_ct=count($db_page);
 	$cc=0;
 	for($i=0;$i<$arr_ct;$i++){
 		$cc=$cc+1;
-		//$echo_data.="編號".$db_arr[0][$cc]['cc']."<br>";
-		$echo_data.=text_form($db_arr[0][$cc]['name'],
-		                      $db_arr[0][$cc]['text'],
-		                      $db_arr[0][$cc]['age'],
-		                      $db_arr[0][$cc]['tag'],
-		                      $db_arr[0][$cc]['uid'],
-		                      $db_arr[0][$cc]['pw'],
-		                      $db_arr[0][$cc]['auto_time'],
-		                      $db_arr[0][$cc]['auto_id']);//自訂函數 //輸出格式
+		//$echo_data.="編號".$db_page[$cc]['cc']."<br>";
+		$tmp=text_form($db_page[$cc]['name'],
+		               $db_page[$cc]['text'],
+		               $db_page[$cc]['age'],
+		               $db_page[$cc]['tag'],
+		               $db_page[$cc]['uid'],
+		               $db_page[$cc]['pw'],
+		               $db_page[$cc]['auto_time'],
+		               $db_page[$cc]['auto_id']);//自訂函數 //輸出格式
+		$echo_data=$tmp.$echo_data;
 	}
 	//頁數切換欄
 	$echo_data="<span style='display:block;BORDER-LEFT:#0f0 10px solid;min-height:10px;'>".$echo_data."</span>";
 	$echo_data=$tmp_str.$echo_data.$tmp_str;
-	$echo_data="".$db_arr[1]."<dl>".$echo_data."</dl>".$db_arr[1]."";
+	$echo_data="".$db_page_bar."<dl>".$echo_data."</dl>".$db_page_bar."";
 	return $echo_data;
 }
-function find($con,$time,$t2,$word){
+function find($con,$time,$t2,$word,$tag){
 	$echo_data='';
 	$word = chra_fix($word); //[自訂函數]轉換成安全字元
 	$words = preg_split("/(　| )+/", $word);//用空白來分割字串
-	$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
+	if($tag){
+		$back="<a href='./?t2=".$t2."&tag=".$tag."'>←".$t2."#".$tag."</a>";
+	}else{
+		$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
+	}
+	$back="<a href='./?t2=".$t2."&tag=".$tag."'>←".$t2."</a>";
 	//$echo_data.=$word;
 	$time2 = $time - 365*24*60*60;
 	//執行 SQL 查詢語法查詢總筆數
-	$sql = "SELECT * FROM `$t2` WHERE `auto_time`>$time2 ORDER BY `auto_time`  DESC";//選擇資料排序方法
+	if($tag){
+		$sql = "SELECT * FROM `$t2` WHERE `auto_time`>$time2 and `tag`='$tag' ORDER BY `auto_time`  DESC";//選擇資料排序方法
+	}else{
+		$sql = "SELECT * FROM `$t2` WHERE `auto_time`>$time2 ORDER BY `auto_time`  DESC";//選擇資料排序方法
+	}
 	$result = mysql_query($sql);
 	//if($result){$echo_data.='SELECT TABLE &#10004;<br/>';}else{die('SELECT TABLE &#10008;'.mysql_error());}
 	$max_row = mysql_num_rows($result);//計算資料數
 	$ct=count($words);
 	$flag=0; $cc=0;
 	//$echo_data.=$back;
-	$echo_data.="<span style='display:block;BORDER-LEFT:#0f0 10px solid'><dl>";
+	$echo_data.="<span style='display:block;BORDER-LEFT:#00f 10px solid'><dl>";
 	while($row = mysql_fetch_array($result)){
 		$flag=1;//旗幟
 		//$body=$body."<hr/>".$row['auto_id']."<br/>"; //檢查點
@@ -308,8 +332,12 @@ function find($con,$time,$t2,$word){
 	}
 	$echo_data.="</dl></span>";
 	//
-	$tmp_str="找到".$cc."個<span style='background-color:yellow;'>".$word."</span><br/>";
-	$echo_data=$tmp_str.$back.$echo_data.$back;
+	if($tag){
+		$tmp_str="在".$tag."找到".$cc."個<span style='background-color:yellow;'>".$word."</span><br/>";
+	}else{
+		$tmp_str="全體搜尋找到".$cc."個<span style='background-color:yellow;'>".$word."</span><br/>";
+	}
+	$echo_data=$tmp_str.$back.$echo_data.$back."<br/>\n";
 	
 	return $echo_data;
 }
@@ -332,15 +360,14 @@ switch($mode){
 	break;
 	case 'find':
 		echo htmlstart_parameter(1,$ver);
-		echo find($con,$time,$t2,$word);
+		echo find($con,$time,$t2,$word,$tag);
 		echo $htmlend;
 	break;
 	default:
 		if($tag){//有tag
 			//if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{0,60}/');}
-			if($p2){$p2=$p2;}else{$p2=1;}
-			$num=25;//每頁25篇
-			$htmlbody=tag($con,$t2,$tag,$p2,$num);//自訂函數
+			if($p2){$p2=$p2;}else{$p2=0;}
+			$htmlbody=tag($con,$t2,$tag,$p2);//自訂函數
 			echo htmlstart_parameter(1,$ver);
 			echo $form;
 			echo $htmlbody;

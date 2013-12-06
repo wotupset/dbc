@@ -11,7 +11,7 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="131205beta0602"; //版本?
+$ver="131206beta2238"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -241,34 +241,52 @@ function about_time($go,$time){
 	return $go;
 }
 //**********
-//$con,$t2,$tag,$p2,$num
-function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱 
-	if($tag){
-		$order="SELECT * FROM `$table` WHERE `tag` = '$tag' ORDER BY `age` DESC"; //取得符合tag的文章
+function db_page_bar($con,$table,$tag,$p2,$num){ //連線 表單名稱 
+	$sort=0; //DESC=新的在前
+	if($sort){$sort="DESC";}else{$sort="ASC";}
+	if($tag){//DESC ASC
+		$order="SELECT * FROM `$table` WHERE `tag` = '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
 	}else{
-		$order="SELECT * FROM `$table` ORDER BY `age` DESC"; //不使用tag的情況
+		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
 	}
 	$sql_result = mysql_query($order); //列出相符的tag
 	if(mysql_error()){die("讀取失敗 可能是表單不存在");}//有錯誤就停止
 	$rows_max = mysql_num_rows($sql_result);//取得資料庫總筆數
 	$db_all_page=ceil($rows_max/$num);//總頁數 //返回不小于 x 的下一个整数
 	//(48/25) = 取2頁
+	if($p2>$db_all_page || $p2<0 || preg_match("/[^0-9]/",$p2) ){die('頁數有誤');}
 	$tag_page_bar=''; $cc=0;
 	for($i=0;$i<$db_all_page;$i++){
 		$cc=$cc+1;
 		$cc_pad=str_pad($cc,3,"0",STR_PAD_LEFT);
 		$tag_page_bar_tmp="<a href='".$phpself."?t2=".$table."&tag=".$tag."&p2=".$cc."'>[".$cc_pad."]</a>";
-		if($cc==$p2){
+		if($cc==$p2){//當前頁數特別標示
 			$tag_page_bar_tmp="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'>".$tag_page_bar_tmp."</span>";
 		}else{}
-		$tag_page_bar.=$tag_page_bar_tmp;
+		$tag_page_bar=$tag_page_bar_tmp.$tag_page_bar;
 	}
-	$tmp_str=$GLOBALS['phpself'];
-	$tag_page_bar="在<a href='".$tmp_str."?t2=".$t2."'>".$table."</a>有".$rows_max."個<h1>".$tag."</h1>標籤被找到<br/>".$tag_page_bar."";
-	$tag_page_bar="\n<hr/>".$tag_page_bar."<hr/>\n";
-	//$GLOBALS['tag_page_bar']=$tag_page_bar;
-	//**********
-	$num_start_at = $num*($p2-1)+1;//計算起始筆數
+	//
+	$x=array();
+	$x[0]=$tag_page_bar;
+	$x[1]=$rows_max;
+	return $x;
+}
+function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱 
+	$sort=0; //DESC=新的在前
+	if($sort){$sort="DESC";}else{$sort="ASC";}
+	if($tag){//DESC ASC
+		$order="SELECT * FROM `$table` WHERE `tag` = '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
+	}else{
+		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
+	}
+	$sql_result = mysql_query($order); //列出相符的tag
+	if(mysql_error()){die("讀取失敗 可能是表單不存在");}//有錯誤就停止
+	$rows_max = mysql_num_rows($sql_result);//取得資料庫總筆數
+	if($p2==0){
+		$num_start_at = $rows_max -$num+1;//計算起始筆數
+	}else{
+		$num_start_at = $num*($p2-1)+1;//計算起始筆數
+	}
 	//50*(1-1)+1 //第1頁 每頁50篇 首篇=1
 	//50*(2-1)+1 //第2頁 每頁50篇 首篇=51
 	$tmp_str_arr=array(); $cc=0; $cc2=0;
@@ -290,8 +308,7 @@ function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	}
 	//$x=print_r($tmp_str_arr,true);
 	
-	$x[0]=$tmp_str_arr;
-	$x[1]=$tag_page_bar;
+	$x[0]=$tmp_str_arr; //範圍裡的資料
 	return $x;
 }
 //**********
