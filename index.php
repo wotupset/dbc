@@ -28,7 +28,6 @@ if(!is_file($tmp)){die("ac miss");}
 require $tmp;
 if(!isset($dbuser)){die("die");}
 require "./db_config.php";//$time
-if($p2==""){$p2=0;}
 if($t2==""){$t2='index';}
 //$phpself
 
@@ -39,6 +38,22 @@ unset($tmp);
 //echo gmdate('Y/m/d(D) H:i:s', time()+60*60*8);
 //echo time().date('Y/m/d(D) H:i:s', time());
 //gmdate('H',$time)=="14" && 
+//**********初始化 或是修正
+////檢查名為index的table是否存在 不存在則建立
+$sql="SHOW TABLE STATUS";
+$result = mysql_query($sql); //mysql_list_tables($dbname)
+if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
+$tmp=1;$title='index';
+while ($row = mysql_fetch_row($result)) {
+	if($row[0]=='index'){$tmp=0;};//有找到叫index的table
+}
+//isset($row[0]);
+if($tmp){//建立預設的表格
+	$t='index';
+	$sql=newtable($t); // return $sql;
+	$result=mysql_query($sql,$con);
+	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+}
 
 $sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
 $order=mysql_query($sql);
@@ -46,6 +61,7 @@ $sql = "ALTER TABLE `$t2` CHANGE `time` `auto_time` timestamp DEFAULT CURRENT_TI
 $order=mysql_query($sql);
 $sql = "ALTER TABLE `$t2` CHANGE `tutorial_id` `auto_id` INT NOT NULL AUTO_INCREMENT";// 
 $order=mysql_query($sql);
+
 //**********
 	
 ////*reg
@@ -128,27 +144,10 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 
 ////view
 function view($con,$p2,$t2,$time){
-
-	////檢查名為index的table是否存在 不存在則建立
-	$sql="SHOW TABLE STATUS";
-	$result = mysql_query($sql); //mysql_list_tables($dbname)
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
-	$tmp=1;$title='index';
-	while ($row = mysql_fetch_row($result)) {
-		if($row[0]=='index'){$tmp=0;};//有找到叫index的table
-	}
-	//isset($row[0]);
-	if($tmp){//建立預設的表格
-		$t='index';
-		$sql=newtable($t); // return $sql;
-		$result=mysql_query($sql,$con);
-		if(mysql_error()){die(mysql_error());}//有錯誤就停止
-	}
 	////列出資料
 	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC";//取得資料庫總筆數
 	$result = mysql_query($sql,$con);
-	//if(mysql_error()){die(mysql_error());}//有錯誤就停止
-	if(mysql_error()){die($t2."不存在");}//有錯誤就停止
+	if(mysql_error()){die(mysql_error());}//有錯誤就停止
 	////檢查page範圍
 	$max = mysql_num_rows($result);//取得資料庫總筆數
 	$show_new = 20;//最新頁秀出?筆資料
@@ -173,15 +172,15 @@ $form=$GLOBALS['form'];
 		if($i==0){$tmp='最新';}else{$tmp=($i)*100;$tmp=''.$tmp.'內';}
 		if($i==$p2){//當前頁數變色標示
 			if($i==0){
-				$page_zero="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'>[<a href=".$phpself."?p2=".$i."&t2=".$t2.">$tmp</a>]</span>";
+				$page_zero="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'><a href=".$phpself."?p2=".$i."&t2=".$t2.">[".$tmp."]</a></span>";
 			}else{
-				$page_echo="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'>[<a href=".$phpself."?p2=".$i."&t2=".$t2.">$tmp</a>]</span>".$page_echo;
+				$page_echo="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'><a href=".$phpself."?p2=".$i."&t2=".$t2.">[".$tmp."]</a></span>".$page_echo;
 			}
 		}else{//逆接
 			if($i==0){
-				$page_zero="[<a href=".$phpself."?p2=".$i."&t2=".$t2.">$tmp</a>]";
+				$page_zero="<a href=".$phpself."?p2=".$i."&t2=".$t2.">[".$tmp."]</a>";
 			}else{
-				$page_echo="[<a href=".$phpself."?p2=".$i."&t2=".$t2.">$tmp</a>]".$page_echo;
+				$page_echo="<a href=".$phpself."?p2=".$i."&t2=".$t2.">[".$tmp."]</a>".$page_echo;
 			}
 		}
 	}
@@ -191,7 +190,9 @@ $form=$GLOBALS['form'];
 	if($p2==0){
 		$sql = "SELECT * FROM `$t2` ORDER BY `age` DESC LIMIT $show_new";//最新頁
 	}else{
-		$sql = "SELECT * FROM `$t2` ORDER BY `age` ASC LIMIT $show_s,$show";//歷史頁每頁100筆
+		//$sql = "SELECT * FROM `$t2` ORDER BY `age` ASC LIMIT $show_s,$show";//歷史頁每頁100筆
+		$tmp=(($p2-1)*$show)+1; $tmp2=$tmp+$show-1;
+		$sql = "SELECT * FROM `$t2` WHERE `auto_id` BETWEEN $tmp AND $tmp2 ORDER BY `age` ASC ";//歷史頁每頁100筆
 	}
 	
 	$result = mysql_query($sql);
@@ -226,7 +227,7 @@ $text = $string;
 		$box.="</dt>";
 
 		$box.="\n<dd>".$text."</dd>";//內文
-		$box.="\n<dt>$cc&#10048;</dt>";
+		$box.="\n<dt>&#10048;</dt>";
 		//避免最新頁 沒抓滿20篇 所以另外echo
 		if($p2==0){$tmp_print=$tmp_print.$box;}else{$tmp_print=$box.$tmp_print;}//新舊上下的問題
 	}
@@ -241,7 +242,7 @@ function tag($con,$t2,$tag,$p2,$num){
 	$db_arr=db_page($con,$t2,$tag,$p2,$num);//自訂函數 //依頁數取範圍資料
 	//arr[0] = 範圍資料 //arr[1]=分頁bar
 	$echo_data='';
-	$arr_ct=count($db_arr);
+	$arr_ct=count($db_arr[0]);
 	$cc=0;
 	for($i=0;$i<$arr_ct;$i++){
 		$cc=$cc+1;
@@ -336,7 +337,7 @@ switch($mode){
 	break;
 	default:
 		if($tag){//有tag
-			if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{0,60}/');}
+			//if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{0,60}/');}
 			if($p2){$p2=$p2;}else{$p2=1;}
 			$num=25;//每頁25篇
 			$htmlbody=tag($con,$t2,$tag,$p2,$num);//自訂函數
@@ -345,8 +346,7 @@ switch($mode){
 			echo $htmlbody;
 			echo $htmlend;
 		}else{
-			//echo gmdate("Ymd-His", $time)."<br/>";
-			//echo ''.$pw;
+			if($p2){$p2=$p2;}else{$p2=0;}
 			$htmlbody=view($con,$p2,$t2,$time);
 			echo htmlstart_parameter(0,$ver);//可以index
 			echo $form;
@@ -357,6 +357,4 @@ switch($mode){
 }
 
 
-
 ?>
-	
