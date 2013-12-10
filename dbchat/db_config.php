@@ -26,18 +26,18 @@ mysql_query("SET NAMES 'utf8'");
 // (加在mysql_select_db之前)
 $tmp=mysql_select_db($dbname, $con);//選擇資料庫
 if(mysql_error()){die(mysql_error());}else{$db_chk='mysql_connect &#10004 <br/>';}//讀取失敗則停止
-function newtable($t){ //資料表格式
+function newtable($t){//資料表格式
 	$sql = "CREATE TABLE IF NOT EXISTS `$t`
 	(
-	`time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
 	`name` varchar(255),
 	`text` varchar(65535) NOT NULL,
 	`age` int,
-	`tag` varchar(16),
+	`tag` varchar(40),
 	`uid` varchar(255),
 	`pw` varchar(255),
-	`tutorial_id` INT NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY (tutorial_id)
+	`auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`auto_id` INT NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY ( auto_id )
 	)ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci";
 	return $sql;
 }

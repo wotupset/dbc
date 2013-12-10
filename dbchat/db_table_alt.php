@@ -32,20 +32,19 @@ function xx(){
 		if(mysql_error()){die(mysql_error());}//讀取失敗則停止
 		if(preg_match('/COL/', $tmp)){//資料由csv匯入時 的初始名稱
 			$go.='修改COL名稱<br>';
-			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 1` `time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP");
-			if(mysql_error()){die(mysql_error());}//讀取失敗則停止
+			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 1` `auto_time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP");
 			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 2` `name` varchar(255)");
 			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 3` `text` varchar(65535)");
 			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 4` `age` int");
 			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 5` `tag` varchar(16)");
 			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 6` `uid` varchar(255)");
 			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 7` `pw` varchar(255)");
-			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 8` `tutorial_id` int NOT NULL PRIMARY KEY AUTO_INCREMENT");
+			$order=mysql_query("ALTER TABLE `$table_name` CHANGE `COL 8` `auto_id` int NOT NULL PRIMARY KEY AUTO_INCREMENT");
 		}
 		////命令
 		$order=mysql_query("ALTER TABLE `$table_name` CHANGE `tag` `tag` varchar(16)");
 		$go.='修改tag欄位'.mysql_error()."<br/>";
-		//$order=mysql_query("ALTER TABLE `$table_name` CHANGE `tutorial_id` `auto_id` int NOT NULL PRIMARY KEY AUTO_INCREMENT");
+		//$order=mysql_query("ALTER TABLE `$table_name` CHANGE `auto_id` `auto_id` int NOT NULL PRIMARY KEY AUTO_INCREMENT");
 		//$go.='修改tag欄位'.mysql_error()."<br/>";
 	}
 	

@@ -230,7 +230,7 @@ $text = $string;
 /*
 ////禁語的設定(未完成)
 		if($ban_chk){
-			$box.="\n<dd><a href='db_table_find.php?t2=".$t2."&f2=".$row['tutorial_id']."'>[x]</a></dd> ";
+			$box.="\n<dd><a href='db_table_find.php?t2=".$t2."&f2=".$row['auto_id']."'>[x]</a></dd> ";
 		}else{$box.="\n<dd>".$text."</dd>";}
 ////^^
 */

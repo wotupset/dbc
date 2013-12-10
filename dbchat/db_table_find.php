@@ -22,7 +22,7 @@ while($row = mysql_fetch_array($result)){ //列出目標的資料
 	$echo_data_clear.="".$row['text']."";
 	$echo_data.="\n<dd>".$row['text']."<dd>\n";
 	$echo_data.="<dt>&#10048;</dt>";
-	$takeout[0]=$row['tutorial_id']; //文章編號
+	$takeout[0]=$row['auto_id']; //文章編號
 	$takeout[1]=$row['tag']; //文章含有標籤
 	$takeout[2]=$row['uid']; //uid
 }

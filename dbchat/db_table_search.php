@@ -12,7 +12,7 @@ $body='';
 $body=$body."<br/>";
 if($t&&$find){ //&&FALSE
 	//執行 SQL 查詢語法查詢總筆數
-	$sql = "SELECT * FROM `$t` ORDER BY `time` DESC";//選擇資料排序方法
+	$sql = "SELECT * FROM `$t` ORDER BY `auto_time` DESC";//選擇資料排序方法
 	$result = mysql_query($sql);
 	if($result){echo 'SELECT TABLE &#10004;';}else{die('SELECT TABLE &#10008;'.mysql_error());}echo '<br/>';
 	$max = mysql_num_rows($result);//計算資料數
@@ -23,7 +23,7 @@ if($t&&$find){ //&&FALSE
 	$flag=0;//旗幟
 	while($row = mysql_fetch_array($result)){
 		$flag=1;//旗幟
-		//$body=$body."<hr/>".$row['tutorial_id']."<br/>"; //檢查點
+		//$body=$body."<hr/>".$row['auto_id']."<br/>"; //檢查點
 		for($i = 0; $i < $kn; $i++){ 
 			//$body=$body.$words[$i]."<br/>";//檢查點
 			if(stristr($row['text'],$words[$i])){//檢查是否有出現 //stristr //substr_count
@@ -39,7 +39,7 @@ if($t&&$find){ //&&FALSE
 		}
 		//處理完
 		if($flag){//有找到才印出來
-			$body=$body."<a href='db_table_find.php?t=index&f=".$row['tutorial_id']."' target='_blank'>No.".$row['tutorial_id']."</a><br/>";
+			$body=$body."<a href='db_table_find.php?t=index&f=".$row['auto_id']."' target='_blank'>No.".$row['auto_id']."</a><br/>";
 			$body=$body.$row['text']."<br/>";
 		}
 		//
