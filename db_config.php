@@ -11,7 +11,7 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="131206beta2238"; //版本?
+$ver="131209beta1652"; //版本?
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
@@ -49,7 +49,11 @@ function htmlstart_parameter($go,$ver){
 $tmp=<<<EOT
 \n<META NAME="ROBOTS" CONTENT="noINDEX, FOLLOW">
 EOT;
-	}else{$tmp='';}
+	}else{
+$tmp=<<<EOT
+\n<META NAME="ROBOTS" CONTENT="INDEX, FOLLOW">
+EOT;
+	}
 //
 $phphost=$GLOBALS['phphost'];
 $htmlstart=<<<EOT

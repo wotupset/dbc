@@ -24,11 +24,11 @@ $echo_data.="<span style='display:block;BORDER-LEFT:#0f0 10px solid'><dl>";
 while($row = mysql_fetch_array($result)){
 	$echo_data.="<dt>";
 	//echo " ".$row['age']." ";
-	$echo_data.="[".$row['time']."] ";
+	$echo_data.="[".$row['auto_time']."] ";
 	$echo_data.=" ".$row['name']." ";
 	//$echo_data.="".$row['uid']." ";
 	$echo_data.="".about_time($row['age'],$time)."";
-	$echo_data.=" No.".$row['tutorial_id']." ";
+	$echo_data.=" No.".$row['auto_id']." ";
 	$echo_data.="</dt>";
 	$echo_data.="<dd>".$row['text']."</dd>";
 	$echo_data.="<dt>&#10048;</dt>";

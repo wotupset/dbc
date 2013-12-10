@@ -12,7 +12,7 @@ $body='';
 $body=$body."<br/>";
 if($t&&$find){ //&&FALSE
 	//執行 SQL 查詢語法查詢總筆數
-	$sql = "SELECT * FROM `$t` ORDER BY time DESC";//選擇資料排序方法
+	$sql = "SELECT * FROM `$t` ORDER BY `time` DESC";//選擇資料排序方法
 	$result = mysql_query($sql);
 	if($result){echo 'SELECT TABLE &#10004;';}else{die('SELECT TABLE &#10008;'.mysql_error());}echo '<br/>';
 	$max = mysql_num_rows($result);//計算資料數

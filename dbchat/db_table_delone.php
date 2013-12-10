@@ -44,7 +44,7 @@ while($row = mysql_fetch_array($result)){
 	//$body.= "[".$row['time']."] ";
 	//echo "".$row['uid']." ";
 	//echo "".$row['pw']." ";
-	$body.= "指定對象：No.".$row['tutorial_id']." ";
+	$body.= "指定對象：No.".$row['auto_id']." ";
 	//echo "<dd>".$row['text']."</dd>";
 	$body.= "&#10048;";
 }

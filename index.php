@@ -28,8 +28,8 @@ if(!is_file($tmp)){die("ac miss");}
 require $tmp;
 if(!isset($dbuser)){die("die");}
 require "./db_config.php";//$time
-if($t2==""){$t2='index';}
-//$phpself
+$table_name_index="index";
+if($t2==""){$t2=$table_name_index;}
 
 if($tag){$tmp="&tag=$tag";}else{$tmp="";}
 $t_url="./?t2=$t2".$tmp;//網址
@@ -43,14 +43,13 @@ unset($tmp);
 $sql="SHOW TABLE STATUS";
 $result = mysql_query($sql); //mysql_list_tables($dbname)
 if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
-$tmp=1;$title='index';
+$tmp=1;
 while ($row = mysql_fetch_row($result)) {
-	if($row[0]=='index'){$tmp=0;};//有找到叫index的table
+	if($row[0]==$table_name_index){$tmp=0;};//有找到叫index的table
 }
 //isset($row[0]);
 if($tmp){//建立預設的表格
-	$t='index';
-	$sql=newtable($t); // return $sql;
+	$sql=newtable($table_name_index); // return $sql;
 	$result=mysql_query($sql,$con);
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止
 }
@@ -149,16 +148,15 @@ function view($con,$p2,$t2,$time){
 	$result = mysql_query($sql,$con);
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止
 	////檢查page範圍
-	$max = mysql_num_rows($result);//取得資料庫總筆數
+	$rows_max = mysql_num_rows($result);//取得資料庫總筆數
 	$show_new = 20;//最新頁秀出?筆資料
 	$show=100;//歷史頁秀出?筆資料
-	$all_p = ceil($max/$show);//計算留言版所有頁數
-	$show_s = $show*($p2-1);//計算起始筆數
+	$all_p = ceil($rows_max/$show);//計算留言版所有頁數
+	$show_start_at = $show*($p2-1);//計算起始筆數
 	if($p2>$all_p||$p2<0||preg_match("/[^0-9]/",$p2)){die('頁數有誤');}
 	//$tmp=gmdate('H', $time);
 	$htmlbody='';
 	$page_echo='';
-	$max_print=(string)$max;
 	for($i=0; $i<=$all_p; $i++){//利用迴圈列所有頁數
 		//if($i<10){$tmp="0".$i;}else{$tmp="".$i;}//如果$i小於10 前面加個0
 		if($i==0){$tmp='最新';}else{$tmp=($i)*100;$tmp=''.$tmp.'內';}
@@ -177,7 +175,7 @@ function view($con,$p2,$t2,$time){
 		}
 	}
 	$page_echo=$page_zero.$page_echo;//第0頁接在前面
-	$page_echo="在<h1>".$t2."</h1>有".$max_print."個項目被找到<br/>".$page_echo;
+	$page_echo="在<h1><a href='../'>".$t2."</a></h1>有".$rows_max."個項目被找到<br/>".$page_echo;
 	$htmlbody.= "<hr/>$page_echo<hr/>";
 	if($p2==0){
 		$sql = "SELECT * FROM `$t2` ORDER BY `age` DESC LIMIT $show_new";//最新頁
@@ -217,7 +215,7 @@ $text = $string;
 		//如果tag有值
 		if($row['tag']){$box.="<a href='./?tag=".$row['tag']."&t2=".$t2."'>".$row['tag']."</a> ";}
 		$box.="</dt>";
-
+ 
 		$box.="\n<dd>".$text."</dd>";//內文
 		$box.="\n<dt>&#10048;</dt>";
 		//避免最新頁 沒抓滿20篇 所以另外echo
@@ -240,11 +238,12 @@ function tag($con,$t2,$tag,$p2){
 		$db_page2=db_page($con,$t2,$tag,$p2,$num);//自訂函數 //依頁數取範圍資料
 		$db_page=$db_page2[0];
 	}
-
+	//**設定分頁**
 	$num=25;//每頁25篇
 	$db_page_bar2=db_page_bar($con,$t2,$tag,$p2,$num); //製作分頁
 	$db_page_bar=$db_page_bar2[0];
 	$rows_max=$db_page_bar2[1];
+	unset($db_page_bar2);//捨棄掉這個變數 因為不再使用
 	if($p2==0){
 		$db_page_bar_tmp="<a href='".$phpself."?t2=".$t2."&tag=".$tag."&p2=0'>[最新]</a>";
 		$db_page_bar_tmp="<span style='border-radius: 22px; border:1px solid red;background-color:#0ff;'>".$db_page_bar_tmp."</span>";
@@ -253,8 +252,8 @@ function tag($con,$t2,$tag,$p2){
 	}
 	$db_page_bar=$db_page_bar_tmp.$db_page_bar;
 	$db_page_bar="在<a href='".$phpself."?t2=".$t2."'>".$t2."</a>有".$rows_max."個<h1>".$tag."</h1>標籤被找到<br/>".$db_page_bar."";
-	$db_page_bar="\n<hr/>".$db_page_bar."<hr/>\n";
-	//arr[0] = 範圍資料 //arr[1]=分頁bar
+	$db_page_bar="\n<hr/>".$db_page_bar."<hr/>\n";//分頁的html
+	//**設定分頁**//
 	$echo_data='';
 	$arr_ct=count($db_page);
 	$cc=0;
@@ -286,7 +285,7 @@ function find($con,$time,$t2,$word,$tag){
 	}else{
 		$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
 	}
-	$back="<a href='./?t2=".$t2."&tag=".$tag."'>←".$t2."</a>";
+	$back="<a href='./?t2=".$t2."&tag=".$tag."'>←".$t2."#".$tag."</a>";
 	//$echo_data.=$word;
 	$time2 = $time - 365*24*60*60;
 	//執行 SQL 查詢語法查詢總筆數

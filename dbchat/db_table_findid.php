@@ -15,14 +15,14 @@ $echo_data.="<dl>";
 while($row = mysql_fetch_array($result)){ //列出目標的資料
 	$echo_data.="<dt>";
 	//$echo_data.=" ".$row['age']." ";
-	$echo_data.="[".$row['time']."] ";
+	$echo_data.="[".$row['auto_time']."] ";
 	$echo_data.=" ".$row['name']." ";
 	//$echo_data.="".$row['uid']." ";
-	$echo_data.="No.".$row['tutorial_id']." ";
+	$echo_data.="No.".$row['auto_id']." ";
 	$echo_data.="</dt>";
 	$echo_data.="\n<dd>".$row['text']."<dd>\n";
 	$echo_data.="<dt>&#10048;</dt>";
-	$takeout[0]=$row['tutorial_id']; //文章編號
+	$takeout[0]=$row['auto_id']; //文章編號
 	$takeout[1]=$row['tag']; //文章含有標籤
 }
 $echo_data.="</dl>";

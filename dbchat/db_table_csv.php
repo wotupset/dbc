@@ -29,7 +29,7 @@ switch($mode){
 		header("Content-Disposition:attachment;filename=$t.csv"); //顯示的檔名
 
 		/////////
-		$sql = "SELECT * FROM `$t` ORDER BY `tutorial_id` DESC";//取得資料庫資料
+		$sql = "SELECT * FROM `$t` ORDER BY `auto_id` DESC";//取得資料庫資料
 		$result = mysql_query($sql);
 		if(mysql_error()){die(mysql_error());}//有錯誤就停止
 		$dbmax = mysql_num_rows($result);//取得資料庫總筆數

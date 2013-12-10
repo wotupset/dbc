@@ -4,7 +4,7 @@ include 'db_ac.php';
 include 'db_config.php';
 if(empty($t2)){die('xt2');}
 
-$sql="SELECT * FROM `$t2` WHERE `tutorial_id` = '$f2'";//對照uid找目標
+$sql="SELECT * FROM `$t2` WHERE `auto_id` = '$f2'";//對照uid找目標
 $result = mysql_query($sql);
 if(mysql_error()){die(mysql_error());}//有錯誤就停止
 
@@ -14,10 +14,10 @@ $echo_data.="<dl>";
 while($row = mysql_fetch_array($result)){ //列出目標的資料
 	$echo_data.="<dt>";
 	//$echo_data.=" ".$row['age']." ";
-	$echo_data.="[".$row['time']."] ";
+	$echo_data.="[".$row['auto_time']."] ";
 	$echo_data.=" ".$row['name']." ";
 	//$echo_data.="".$row['uid']." ";
-	$echo_data.="No.".$row['tutorial_id']." ";
+	$echo_data.="No.".$row['auto_id']." ";
 	$echo_data.="</dt>";
 	$echo_data_clear.="".$row['text']."";
 	$echo_data.="\n<dd>".$row['text']."<dd>\n";

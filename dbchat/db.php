@@ -29,7 +29,7 @@ function reg($con,$p2,$t2,$text,$t_url,$pw,$tag,$time){
 	$maxlen=strlen($text);//計算字數
 	$maxline=substr_count($text,"<br/>");
 	
-	$sql = "SELECT * FROM `$t2` ORDER BY `time` DESC LIMIT 10"; //抓出最新10篇比較內容
+	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC LIMIT 10"; //抓出最新10篇比較內容
 	$result = mysql_query($sql);
 	//echo " ".$row['name']." ";
 	while($row = mysql_fetch_array($result)){
@@ -82,7 +82,7 @@ function view($dbname,$con,$p2,$t2,$t_url,$time){
 		if(mysql_error()){die(mysql_error());}//有錯誤就停止
 	}
 	////列出資料
-	$sql = "SELECT * FROM `$t2` ORDER BY `time` DESC";//取得資料庫總筆數
+	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC";//取得資料庫總筆數
 	$result = mysql_query($sql,$con);
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止
 	////檢查page範圍
@@ -216,11 +216,11 @@ $text = $string;
 		$box='';
 		$box.="\n<dt>";
 		//$tmp=$tmp." ".$row['age']." ";
-		$tmp2=strtotime($row['time']);//將可讀時間轉成 UNIX時間
-		$box.="[".$row['time']."] ";
+		$tmp2=strtotime($row['auto_time']);//將可讀時間轉成 UNIX時間
+		$box.="[".$row['auto_time']."] ";
 		$box.="<a href='db_table_findid.php?t2=".$t2."&f2=".$row['name']."'>".$row['name']."</a> ";
 		//$tmp=$tmp."".$row['pw']." ";
-		$box.="<a href='db_table_find.php?t2=".$t2."&f2=".$row['tutorial_id']."'>No.".$row['tutorial_id']."</a> ";
+		$box.="<a href='db_table_find.php?t2=".$t2."&f2=".$row['auto_id']."'>No.".$row['auto_id']."</a> ";
 		$box.="<a href='db_table_delone.php?t2=".$t2."&f2=".$row['uid']."'>del</a> ";
 		$box.=about_time($row['age'],$time); //顯示發文的大約時間
 		if($row['tag']){//如果tag有值
