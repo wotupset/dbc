@@ -11,8 +11,8 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="131209beta1652"; //版本?
-date_default_timezone_set("Asia/Taipei");//時區設定
+$ver="131212b0741"; //版本?
+//date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time()+8*60*60;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
 //
@@ -88,7 +88,7 @@ $htmlend=<<<EOT
 <a href='#bott'>▼底端</a>
 </span>
 <span style="float: right;  text-align: right;"><a href='#top' id='bott'>■底端▲頂端</a></span>
-<a href='../'>../</a> <h2>$t2</h2> <h3>$ver</h3> </body></html>
+<a href='../'>../</a> <h3>$ver</h3> </body></html>
 EOT;
 //**********
 if(gmdate('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示

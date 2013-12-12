@@ -32,7 +32,7 @@ $table_name_index="index";
 if($t2==""){$t2=$table_name_index;}
 
 if($tag){$tmp="&tag=$tag";}else{$tmp="";}
-$t_url="./?t2=$t2".$tmp;//網址
+$t_url="./?t2=".$t2."".$tmp;//網址
 unset($tmp);
 
 //echo gmdate('Y/m/d(D) H:i:s', time()+60*60*8);
@@ -43,34 +43,39 @@ unset($tmp);
 $sql="SHOW TABLE STATUS";
 $result = mysql_query($sql); //mysql_list_tables($dbname)
 if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
-$tmp=1;
+$tmp_find_index=0;
+$tmp_find_target_table=0;
 while ($row = mysql_fetch_row($result)) {
-	if($row[0]==$table_name_index){$tmp=0;};//有找到叫index的table
+	if($row[0]==$table_name_index){$tmp_find_index=1;};//有找到預設的表格
+	if($row[0]==$t2){$tmp_find_target_table=1;};//有找到指定的表格
 }
 //isset($row[0]);
-if($tmp){//建立預設的表格
+if(!$tmp_find_index && TRUE){//找不到預設的表格 於是建立他
 	$sql=newtable($table_name_index); // return $sql;
 	$result=mysql_query($sql,$con);
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止
 }
+if(!$tmp_find_target_table && $t3=="ok" && TRUE){//找不到指定的表格 於是建立他
+	$sql=newtable($t2); // return $sql;
+	$result=mysql_query($sql,$con);
+	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+}
+if(!$tmp_find_target_table){//找不到指定的表格 回報錯誤並停止
+	die('找不到'.$t2.'表格');
+}
 
-$sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
-$order=mysql_query($sql);
-$sql = "ALTER TABLE `$t2` CHANGE `time` `auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";// 
-$order=mysql_query($sql);
-$sql = "ALTER TABLE `$t2` CHANGE `tutorial_id` `auto_id` INT NOT NULL AUTO_INCREMENT";// 
-$order=mysql_query($sql);
 
-//**********
 	
 ////*reg
 function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	//echo "原始".$pw."<br/>";
+	/* 進入舊版資料夾
 	if(preg_match('/^AEGIS$/i', $tag) && preg_match('/^HOW DO YOU TURN THIS ON$/i', $text)){
 		$dir_in=$GLOBALS['dir_in'];
 		header("refresh:0; url=$dir_in");
 		exit;
 	}
+	*/
 	$ip=$_SERVER["REMOTE_ADDR"];
 	//$tmp=preg_replace('/.+\.([0-9]+)$/','\\1',$ip);
 	setcookie("pwcookie", $pw,$time+7*24*3600); //存入原始的密碼 7天過期
@@ -285,7 +290,13 @@ function find($con,$time,$t2,$word,$tag){
 	}else{
 		$back="<a href='./?t2=".$t2."'>←".$t2."</a>";
 	}
-	$back="<a href='./?t2=".$t2."&tag=".$tag."'>←".$t2."#".$tag."</a>";
+	if($tag){
+		$tmp_0="&tag=".$tag."";
+		$tmp_1="#".$tag."";
+	}else{
+		$tmp_0="";$tmp_1=""; 
+	}
+	$back="<a href='./?t2=".$t2.$tmp_0."'>←".$t2.$tmp_1."</a>";
 	//$echo_data.=$word;
 	$time2 = $time - 365*24*60*60;
 	//執行 SQL 查詢語法查詢總筆數
@@ -332,9 +343,9 @@ function find($con,$time,$t2,$word,$tag){
 	$echo_data.="</dl></span>";
 	//
 	if($tag){
-		$tmp_str="在".$tag."找到".$cc."個<span style='background-color:yellow;'>".$word."</span><br/>";
+		$tmp_str="在".$tag."找到".$cc."篇含有<span style='background-color:yellow;'>".$word."</span><br/>";
 	}else{
-		$tmp_str="全體搜尋找到".$cc."個<span style='background-color:yellow;'>".$word."</span><br/>";
+		$tmp_str="全體搜尋找到".$cc."篇含有<span style='background-color:yellow;'>".$word."</span><br/>";
 	}
 	$echo_data=$tmp_str.$back.$echo_data.$back."<br/>\n";
 	
