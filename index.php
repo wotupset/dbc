@@ -54,6 +54,7 @@ if(!$tmp_find_index && TRUE){//找不到預設的表格 於是建立他
 	$sql=newtable($table_name_index); // return $sql;
 	$result=mysql_query($sql,$con);
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+	$tmp_find_target_table=1;//創立預設表格完成 將標示設定為已經找到
 }
 if(!$tmp_find_target_table && $t3=="ok" && TRUE){//找不到指定的表格 於是建立他
 	$sql=newtable($t2); // return $sql;
@@ -84,8 +85,8 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	//修正//必要的變色
 	$cell=$text;
 	$cell = preg_replace("/\r\n/","\n",$cell);
-	$cell = preg_replace("/http\:\/\//", "Ettpp//", $cell);//
-	$cell = preg_replace("/Ettpp\/\//", "http://", $cell);//有些免空會擋過多的http字串
+	$cell = preg_replace("/http\:\/\//", "EttppZX", $cell);//
+	$cell = preg_replace("/EttppZX/", "http://", $cell);//有些免空會擋過多的http字串
 	$text=$cell;
 	$count_http=substr_count($cell,'http');//計算連結數量
 	////
@@ -95,8 +96,13 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	//$name=$name;
 	//表板密碼沒用到 所以改存使用者資訊
 	$pw=":".$GLOBALS['screen_width'].$GLOBALS['accept_language'].$GLOBALS['screen_height'].":";
+	//禁止的名稱
 	$ban_name=array('9wCbz69Y','wtFhKRsc');
 	foreach($ban_name as $k => $v){if($name==$v){die('ban_name');}}
+	//禁止的內文
+	$ban_word=array('/Gossiping/','/發信站/');
+	foreach($ban_word as $k => $v){if(preg_match($v,$text)){die('禁止:'.$v);}}
+	
 	if(trim($text)==""){die("無內文");}
 	$text=chra_fix($text);//[自訂函數]轉換成安全字元
 	$maxlen=strlen($text);//計算字數

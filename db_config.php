@@ -149,7 +149,7 @@ function check2(){//onsubmit
 	var re = new RegExp(regStr,'gi');
 	tmp = document.getElementById("text").value;
 	//alert(regStr);
-	tmp = tmp.replace(re,"Ettpp//");//有些免空會擋過多的http字串
+	tmp = tmp.replace(re,"EttppZX");//有些免空會擋過多的http字串
 	document.getElementById("text").value =tmp;
 	document.getElementById("form1").submit();
 }

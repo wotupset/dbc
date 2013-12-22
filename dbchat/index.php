@@ -1,8 +1,11 @@
 <?php
 header("content-Type: text/html; charset=utf-8"); //語言強制
+$query_string=$_SERVER['QUERY_STRING'];
+$phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
+$phphost=$_SERVER["SERVER_NAME"];
 date_default_timezone_set("Asia/Taipei");//時區設定 Etc/GMT+8
-$timex = time();
-//$tim = $timex.substr(microtime(),2,3);
+$time = time();
+//$tim = $time.substr(microtime(),2,3);
 $tim = microtime(true);
 
 $url="./";
@@ -29,18 +32,17 @@ array_multisort($tmp[0],$tmp[2],SORT_ASC, SORT_REGULAR);
 $line = count($tmp[0]);
 
 
-$httphead = '
+$httphead = <<<EOT
 <html><head>
-<title>index</title>
+<title>$phphost</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="Robots" contect="noindex,follow">
-<meta HTTP-EQUIV="pragma" CONTENT="no-cache">
+<meta name="Robots" content="noindex,follow">
 <STYLE TYPE="text/css"><!--
-body { font-family:"細明體"; }
+body { font-family:"細明體",'MingLiU'; }
 --></STYLE>
 </head>
 <body bgcolor="#FFFFEE" text="#800000" link="#0000EE" vlink="#0000EE">
-';
+EOT;
 
 $httpend = "
 </body></html>\n";
@@ -51,22 +53,25 @@ $u = "http://".$_SERVER["SERVER_NAME"]."".$_SERVER["PHP_SELF"]."";
 //$url2=substr($u,0,strrpos($u,"/")+1).$url;
 //echo $url2."<br>";
 
-echo $httphead."\n" ;
-$date_now=date("y/m/d H:i:s", $timex);
-echo "\n<dl><dd>".$date_now."</dd></dl>\n" ;
+$httpbody="";//echo
+$date_now=date("y/m/d H:i:s", $time);
+$httpbody.= "\n<dl><dd>".$date_now."</dd></dl>\n" ;
 
 if($line>=1000){$line=1000;}else{$line=$line;}
 $d='';
 for($i = 0; $i < $line; $i++){//從頭
 	$d='';
 	if($tmp[2][$i]=="y"){
-		echo "<a href='./".$tmp[0][$i]."/'>".$tmp[0][$i]."</a>◆<br>\n";
+		$httpbody.= "<a href='./".$tmp[0][$i]."/'>".$tmp[0][$i]."</a>◆<br>\n";
 	}else{
-		echo "<a href='./".$tmp[0][$i]."'>".$tmp[0][$i]."</a><br>\n";
+		$httpbody.= "<a href='./".$tmp[0][$i]."'>".$tmp[0][$i]."</a><br>\n";
 	}
 }//
 
-echo "\n<dl><dd>".$tim."</dd></dl>\n" ;
+$httpbody.= "\n<dl><dd>".$tim."</dd></dl>\n" ;
+
+echo $httphead."\n" ;
+echo $httpbody."\n" ;
 echo $httpend."\n" ;
 
 
