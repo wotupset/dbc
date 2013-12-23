@@ -41,34 +41,40 @@ unset($tmp);
 //**********資料庫初始化 或是修正
 ////檢查名為index的table是否存在 不存在則建立
 $sql="SHOW TABLE STATUS";
-$result = mysql_query($sql); //mysql_list_tables($dbname)
-if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
+$result = mysqli_query($GLOBALS['db_conn'],$sql); //mysql_list_tables($dbname)
+if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 $tmp_find_index=0;
 $tmp_find_target_table=0;
-while ($row = mysql_fetch_row($result)) {
+while ($row = mysqli_fetch_row($result)) {
 	if($row[0]==$table_name_index){$tmp_find_index=1;};//有找到預設的表格
 	if($row[0]==$t2){$tmp_find_target_table=1;};//有找到指定的表格
 }
 //isset($row[0]);
 if(!$tmp_find_index && TRUE){//找不到預設的表格 於是建立他
 	$sql=newtable($table_name_index); // return $sql;
-	$result=mysql_query($sql,$con);
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+	$result=mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 	$tmp_find_target_table=1;//創立預設表格完成 將標示設定為已經找到
 }
 if(!$tmp_find_target_table && $t3=="ok" && TRUE){//找不到指定的表格 於是建立他
 	$sql=newtable($t2); // return $sql;
-	$result=mysql_query($sql,$con);
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+	$result=mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 }
 if(!$tmp_find_target_table){//找不到指定的表格 回報錯誤並停止
 	die('找不到'.$t2.'表格');
 }
-
-
-	
+if(0){//如果是舊版 可能有欄位名稱相容性的問題
+$sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
+$order=mysqli_query($GLOBALS['db_conn'],$sql);
+$sql = "ALTER TABLE `$t2` CHANGE `time` `auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";// 
+$order=mysqli_query($GLOBALS['db_conn'],$sql);
+$sql = "ALTER TABLE `$t2` CHANGE `tutorial_id` `auto_id` INT NOT NULL AUTO_INCREMENT";// 
+$order=mysqli_query($GLOBALS['db_conn'],$sql);
+}
 ////*reg
 function reg($con,$p2,$t2,$text,$pw,$tag,$time){
+	ob_start();
 	//echo "原始".$pw."<br/>";
 	/* 進入舊版資料夾
 	if(preg_match('/^AEGIS$/i', $tag) && preg_match('/^HOW DO YOU TURN THIS ON$/i', $text)){
@@ -115,10 +121,10 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	*/
 	//加長tag長度
 	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC LIMIT 10"; //抓出最新10篇比較內容
-	$result = mysql_query($sql);
-	if(mysql_error()){die($t2."不存在");}//有錯誤就停止
+	$result = mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".$t2."不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 	//echo " ".$row['name']." ";
-	while($row = mysql_fetch_array($result)){
+	while($row = mysqli_fetch_array($result)){
 		$oldname=$row['name'];//抓出ID
 		$newname=$name;
 		//if($oldname == $newname){echo "Name=";}
@@ -143,12 +149,18 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	$age=$time;//建立發文時間
 	$sql="INSERT INTO `$t2` (name, text, uid, age, pw, tag)
 	VALUES ('$name','$text','$uid','$age','$pw','$tag')";
-	$result=mysql_query($sql,$con);
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+	$result=mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 	$t_url=$GLOBALS['t_url'];
+	$out2 = ob_get_contents();
+	ob_end_clean();
+
 	header("refresh:2; url=$t_url");
+	//header("location: ".$t_url);
 	$tmp="換行".$maxline."字元".$maxlen."";
-	die("<html><head></head><body>$tmp <a href='$t_url'>$t_url</a></body></html>");
+	$out2.="<html><head></head><body>$tmp <a href='$t_url'>$t_url</a></body></html>";
+	echo $out2;
+	exit;
 }
 ////*reg
 
@@ -156,10 +168,10 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 function view($con,$p2,$t2,$time){
 	////列出資料
 	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC";//取得資料庫總筆數
-	$result = mysql_query($sql,$con);
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+	$result = mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 	////檢查page範圍
-	$rows_max = mysql_num_rows($result);//取得資料庫總筆數
+	$rows_max = mysqli_num_rows($result);//取得資料庫總筆數
 	$show_new = 20;//最新頁秀出?筆資料
 	$show=100;//歷史頁秀出?筆資料
 	$all_p = ceil($rows_max/$show);//計算留言版所有頁數
@@ -196,11 +208,12 @@ function view($con,$p2,$t2,$time){
 		$sql = "SELECT * FROM `$t2` WHERE `auto_id` BETWEEN $tmp AND $tmp2 ORDER BY `age` ASC ";//歷史頁每頁100筆
 	}
 	
-	$result = mysql_query($sql);
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止
+	$result = mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+
 	$tmp_print='';
 	$cc=0;
-	while($row = mysql_fetch_array($result)){//將範圍內的資料列出
+	while($row = mysqli_fetch_array($result)){//將範圍內的資料列出
 		if($p2==0){$cc='';}else{$cc=$cc+1;}//非最新頁列出echo編號
 		$text=$row['text'];
 //bbcode()
@@ -311,14 +324,16 @@ function find($con,$time,$t2,$word,$tag){
 	}else{
 		$sql = "SELECT * FROM `$t2` WHERE `auto_time`>$time2 ORDER BY `auto_time`  DESC";//選擇資料排序方法
 	}
-	$result = mysql_query($sql);
+	$result = mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+
 	//if($result){$echo_data.='SELECT TABLE &#10004;<br/>';}else{die('SELECT TABLE &#10008;'.mysql_error());}
-	$max_row = mysql_num_rows($result);//計算資料數
+	$max_row = mysqli_num_rows($result);//計算資料數
 	$ct=count($words);
 	$flag=0; $cc=0;
 	//$echo_data.=$back;
 	$echo_data.="<span style='display:block;BORDER-LEFT:#00f 10px solid'><dl>";
-	while($row = mysql_fetch_array($result)){
+	while($row = mysqli_fetch_array($result)){
 		$flag=1;//旗幟
 		//$body=$body."<hr/>".$row['auto_id']."<br/>"; //檢查點
 		for($i = 0; $i < $ct; $i++){ 

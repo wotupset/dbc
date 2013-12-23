@@ -3,6 +3,7 @@
 extract($_POST,EXTR_SKIP);
 extract($_GET,EXTR_SKIP);
 extract($_COOKIE,EXTR_SKIP);
+define("_def_TIME", time()+8*60*60);
 error_reporting(E_ALL & ~E_NOTICE); //所有錯誤中排除NOTICE提示
 if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 //
@@ -13,10 +14,11 @@ $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
 $ver="131212b0741"; //版本?
 //date_default_timezone_set("Asia/Taipei");//時區設定
-$time=time()+8*60*60;//UNIX時間時區設定
+$time=_def_TIME;//UNIX時間時區設定
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
 //
 ////連結資料庫
+/*
 $con = mysql_connect($dbhost, $dbuser, $dbpass);//連結資料庫
 if(mysql_error()){die(mysql_error());}//有錯誤就停止
 mysql_query("SET time_zone='+8:00';",$con);
@@ -24,7 +26,15 @@ mysql_query("SET CHARACTER_SET_database='utf8'",$con);
 mysql_query("SET NAMES 'utf8'"); 
 // (加在mysql_select_db之前)
 $tmp=mysql_select_db($dbname, $con);//選擇資料庫
-if(mysql_error()){die(mysql_error());}else{$db_chk='mysql_connect &#10004 <br/>';}//讀取失敗則停止
+*/
+//php 5.5up
+$GLOBALS['db_conn'] = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
+if(mysqli_connect_errno($GLOBALS['db_conn'])){die("[mysqli_connect_error]".mysqli_connect_error());}//有錯誤就停止
+mysqli_query($GLOBALS['db_conn'], "SET time_zone='+8:00';");
+mysqli_query($GLOBALS['db_conn'], "SET CHARACTER_SET_database='utf8'");
+mysqli_query($GLOBALS['db_conn'], "SET NAMES 'utf8'");
+if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+
 function newtable($t){//資料表格式
 	$sql = "CREATE TABLE IF NOT EXISTS `$t`
 	(
@@ -253,9 +263,9 @@ function db_page_bar($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	}else{
 		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
 	}
-	$sql_result = mysql_query($order); //列出相符的tag
-	if(mysql_error()){die("讀取失敗 可能是表單不存在");}//有錯誤就停止
-	$rows_max = mysql_num_rows($sql_result);//取得資料庫總筆數
+	$sql_result = mysqli_query($GLOBALS['db_conn'],$order); //列出相符的tag
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+	$rows_max = mysqli_num_rows($sql_result);//取得資料庫總筆數
 	$db_all_page=ceil($rows_max/$num);//總頁數 //返回不小于 x 的下一个整数
 	//(48/25) = 取2頁
 	if($p2>$db_all_page || $p2<0 || preg_match("/[^0-9]/",$p2) ){die('頁數有誤');}
@@ -283,9 +293,9 @@ function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	}else{
 		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
 	}
-	$sql_result = mysql_query($order); //列出相符的tag
-	if(mysql_error()){die("讀取失敗 可能是表單不存在");}//有錯誤就停止
-	$rows_max = mysql_num_rows($sql_result);//取得資料庫總筆數
+	$sql_result = mysqli_query($GLOBALS['db_conn'],$order); //列出相符的tag
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+	$rows_max = mysqli_num_rows($sql_result);//取得資料庫總筆數
 	if($p2==0){
 		$num_start_at = $rows_max -$num+1;//計算起始筆數
 	}else{
@@ -294,7 +304,7 @@ function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	//50*(1-1)+1 //第1頁 每頁50篇 首篇=1
 	//50*(2-1)+1 //第2頁 每頁50篇 首篇=51
 	$tmp_str_arr=array(); $cc=0; $cc2=0;
-	while($row = mysql_fetch_array($sql_result)){//將範圍內的資料列出
+	while($row = mysqli_fetch_array($sql_result)){//將範圍內的資料列出
 		$cc=$cc+1;
 		if( ($cc >= $num_start_at)&&($cc < $num_start_at+$num) ){
 			$cc2=$cc2+1;
