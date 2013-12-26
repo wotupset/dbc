@@ -12,13 +12,16 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="v131223a1009p5"; //版本?
+$ver="v131226a1533p5"; //版本?
 //**********
 $table_name_index="index";//預設的表格名稱
 if($t2==""){$t2=$table_name_index;}
-//if($tag){$tmp="&tag=$tag";}else{$tmp="";}
-//$t_url="./?t2=".$t2."".$tmp;//網址
-if($phpself="index.php"){$t_url="./?".$query_string;}else{$t_url="./".$phpself."?".$query_string;}
+if($tag){$tmp="&tag=$tag";}else{$tmp="";}
+if($phpself="index.php"){
+	$t_url="./?t2=".$t2."".$tmp;
+}else{
+	$t_url="./".$phpself."?t2=".$t2."".$tmp;
+}
 unset($tmp);
 //**********
 ////連結資料庫
