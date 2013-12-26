@@ -26,14 +26,11 @@ if(!is_file($tmp)){die("ac miss");}
 
 //echo $dir_in;
 require $tmp;
-if(!isset($dbuser)){die("die");}
-require "./db_config.php";//$time
-$table_name_index="index";
-if($t2==""){$t2=$table_name_index;}
+if(!isset($dbuser)){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
 
-if($tag){$tmp="&tag=$tag";}else{$tmp="";}
-$t_url="./?t2=".$t2."".$tmp;//網址
-unset($tmp);
+require "./db_config.php";//$time
+
+
 
 //echo gmdate('Y/m/d(D) H:i:s', time()+60*60*8);
 //echo time().date('Y/m/d(D) H:i:s', time());

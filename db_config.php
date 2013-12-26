@@ -1,22 +1,26 @@
 <?php
-//
-extract($_POST,EXTR_SKIP);
-extract($_GET,EXTR_SKIP);
-extract($_COOKIE,EXTR_SKIP);
-define("_def_TIME", time()+8*60*60);
+extract($_POST,EXTR_SKIP);extract($_GET,EXTR_SKIP);extract($_COOKIE,EXTR_SKIP);
+$query_string=$_SERVER['QUERY_STRING'];
+date_default_timezone_set("Asia/Taipei");//時區設定
+$time=time();$GLOBALS['time'] = $time;define("_def_TIME", $time);//UNIX時間時區設定
 error_reporting(E_ALL & ~E_NOTICE); //所有錯誤中排除NOTICE提示
 if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
-//
+//**********
 //require 'db_config_pw.php';//獨立版無管理功能不使用密碼
+//setcookie("b0", 'fuck',$time+3600);//cookie設定
 $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
 $ver="v131223a1009p5"; //版本?
-//date_default_timezone_set("Asia/Taipei");//時區設定
-$time=_def_TIME;//UNIX時間時區設定
-//setcookie("b0", 'fuck',$time+3600);//cookie設定
-//
+//**********
+$table_name_index="index";//預設的表格名稱
+if($t2==""){$t2=$table_name_index;}
+//if($tag){$tmp="&tag=$tag";}else{$tmp="";}
+//$t_url="./?t2=".$t2."".$tmp;//網址
+if($phpself="index.php"){$t_url="./?".$query_string;}else{$t_url="./".$phpself."?".$query_string;}
+unset($tmp);
+//**********
 ////連結資料庫
 /*
 $con = mysql_connect($dbhost, $dbuser, $dbpass);//連結資料庫
@@ -108,6 +112,7 @@ $text_org=(string)$time;
 $chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
 $chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
 //**********
+
 $form=<<<EOT
 <span style="float: left;text-align: left;">
 	<form id='form1' action='$t_url' method='post' onsubmit="return check2();" autocomplete="off">
