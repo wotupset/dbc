@@ -12,7 +12,7 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="v131226a1533p5"; //版本?
+$ver="v131231a1726p5"; //版本?
 //**********
 $table_name_index="index";//預設的表格名稱
 if($t2==""){$t2=$table_name_index;}
@@ -398,5 +398,6 @@ $chk_time_enc=passport_encrypt($time,$chk_time_key);
 $chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);
 echo $time.' '.$chk_time_enc.' '.$chk_time_dec;
 */
+
 
 ?>
