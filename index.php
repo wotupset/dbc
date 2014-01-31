@@ -31,14 +31,10 @@ if(!isset($dbuser)){die("讀取資料庫資訊失敗");} //讀取資料庫資訊
 require "./db_config.php";//$time
 
 
-
-//echo gmdate('Y/m/d(D) H:i:s', time()+60*60*8);
-//echo time().date('Y/m/d(D) H:i:s', time());
-//gmdate('H',$time)=="14" && 
 //**********資料庫初始化 或是修正
 ////檢查名為index的table是否存在 不存在則建立
 $sql="SHOW TABLE STATUS";
-$result = mysqli_query($GLOBALS['db_conn'],$sql); //mysql_list_tables($dbname)
+$result = mysqli_query($GLOBALS['db_conn'],$sql); //列出所有table名稱
 if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 $tmp_find_index=0;
 $tmp_find_target_table=0;
@@ -122,14 +118,14 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	$result = mysqli_query($GLOBALS['db_conn'],$sql);
 	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".$t2."不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 	//echo " ".$row['name']." ";
-	while($row = mysqli_fetch_array($result)){
+	while($row = mysqli_fetch_array($result)){ //取得結果中的值
 		$oldname=$row['name'];//抓出ID
 		$newname=$name;
 		//if($oldname == $newname){echo "Name=";}
 		$oldtime=$row['age'];//抓出發文時間
 		$newtime=$time;
 		//if($newtime - $oldtime < 10){echo "time too close";}
-		if($oldname == $newname && abs($newtime - $oldtime) < 5){
+		if($oldname == $newname && abs($newtime - $oldtime) < 5){ //發文間隔5秒
 			//echo "find";
 			die("發文間隔時間太近");
 		}
@@ -401,6 +397,7 @@ function find($con,$time,$t2,$word,$tag){
 
 switch($mode){
 	case 'reg':
+		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_width'])){die('xW');}//檢查值必須為數字
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_height'])){die('xH');}//檢查值必須為數字
 		if(!preg_match("/^zh/i", $GLOBALS['accept_language'])){die('xL');}//檢查值必須有ZH
@@ -416,11 +413,13 @@ switch($mode){
 		reg($con,$p2,$t2,$text,$pw,$tag,$time);
 	break;
 	case 'find':
+		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		echo htmlstart_parameter(1,$ver);
 		echo find($con,$time,$t2,$word,$tag);
 		echo $htmlend;
 	break;
 	default:
+		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		if($tag){//有tag
 			//if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{0,60}/');}
 			if($p2){$p2=$p2;}else{$p2=0;}

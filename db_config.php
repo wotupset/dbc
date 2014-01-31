@@ -1,10 +1,16 @@
 <?php
+error_reporting(E_ALL & ~E_NOTICE); //所有錯誤中排除NOTICE提示
 extract($_POST,EXTR_SKIP);extract($_GET,EXTR_SKIP);extract($_COOKIE,EXTR_SKIP);
 $query_string=$_SERVER['QUERY_STRING'];
 date_default_timezone_set("Asia/Taipei");//時區設定
-$time=time();$GLOBALS['time'] = $time;define("_def_TIME", $time);//UNIX時間時區設定
-error_reporting(E_ALL & ~E_NOTICE); //所有錯誤中排除NOTICE提示
-if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
+$time=time();
+$GLOBALS['time']=$time;
+$GLOBALS['date']=date("y/m/d H:i:s", $time);//年月
+define("_def_TIME", $GLOBALS['time']);//UNIX時間時區設定
+define("_def_DATE", $GLOBALS['date']);//UNIX時間時區設定
+
+
+
 //**********
 //require 'db_config_pw.php';//獨立版無管理功能不使用密碼
 //setcookie("b0", 'fuck',$time+3600);//cookie設定
