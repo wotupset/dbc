@@ -109,12 +109,13 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	$maxlen=strlen($text);//計算字數
 	$maxline=substr_count($text,"<br/>");
 	/*
+	//計算行數
 	$tmp=array();
 	$tmp=explode("\n",$text);
 	$maxline=count($tmp);//計算行數
 	unset($tmp);//抓到資料後清空陣列
-	*/
 	//加長tag長度
+	*/
 	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC LIMIT 10"; //抓出最新10篇比較內容
 	$result = mysqli_query($GLOBALS['db_conn'],$sql);
 	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".$t2."不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
@@ -146,6 +147,8 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	VALUES ('$name','$text','$uid','$age','$pw','$tag')";
 	$result=mysqli_query($GLOBALS['db_conn'],$sql);
 	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+	$x=array($maxlen,$maxline);
+	return $x;
 }
 ////*reg
 
@@ -412,7 +415,7 @@ switch($mode){
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
 		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為10位數
 		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
-		reg($con,$p2,$t2,$text,$pw,$tag,$time);
+		list($maxlen,$maxline)=reg($con,$p2,$t2,$text,$pw,$tag,$time);
 		//$t_url=$GLOBALS['t_url'];
 		header("Content-type: text/html; charset=utf-8");
 		header("refresh:2; url=$t_url");
