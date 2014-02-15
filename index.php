@@ -1,5 +1,5 @@
 <?php
-header('Content-type: text/html; charset=utf-8');
+
 $handle=opendir("./"); $dir_in=""; 
 $cc=0;
 while(($file = readdir($handle))!==false) { 
@@ -67,7 +67,7 @@ $order=mysqli_query($GLOBALS['db_conn'],$sql);
 }
 ////*reg
 function reg($con,$p2,$t2,$text,$pw,$tag,$time){
-	ob_start();
+
 	//echo "原始".$pw."<br/>";
 	/* 進入舊版資料夾
 	if(preg_match('/^AEGIS$/i', $tag) && preg_match('/^HOW DO YOU TURN THIS ON$/i', $text)){
@@ -91,13 +91,14 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	////
 	$idseed="ㄎㄎ";
 	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.gmdate("ymd", $time)),'id'),-8);
+	$name=preg_replace("/\//","_",$name);//crypt的斜線改成底線
 	//if($GLOBALS['screen_width']&&$GLOBALS['screen_height']){}
 	//$name=$name;
 	//表板密碼沒用到 所以改存使用者資訊
 	$pw=":".$GLOBALS['screen_width'].$GLOBALS['accept_language'].$GLOBALS['screen_height'].":";
 	//禁止的名稱
 	$ban_name=array('/9wCbz69Y/','/94yaCEaw/');//reg格式
-	foreach($ban_name as $k => $v){if(preg_match($v,$text)){die('禁止:'.$v);}}
+	foreach($ban_name as $k => $v){if(preg_match($v,$name)){die('禁止:'.$v);}}
 	
 	//禁止的內文
 	$ban_word=array('/Gossiping/','/發信站/','/taskkill/');//reg格式
@@ -145,16 +146,6 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	VALUES ('$name','$text','$uid','$age','$pw','$tag')";
 	$result=mysqli_query($GLOBALS['db_conn'],$sql);
 	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
-	$t_url=$GLOBALS['t_url'];
-	$out2 = ob_get_contents();
-	ob_end_clean();
-
-	header("refresh:2; url=$t_url");
-	//header("location: ".$t_url);
-	$tmp="換行".$maxline."字元".$maxlen."";
-	$out2.="<html><head></head><body>$tmp <a href='$t_url'>$t_url</a></body></html>";
-	echo $out2;
-	exit;
 }
 ////*reg
 
@@ -194,9 +185,20 @@ function view($con,$p2,$t2,$time){
 	$page_echo=$page_zero.$page_echo;//第0頁接在前面
 	$page_echo="在<h1><a href='../'>".$t2."</a></h1>有".$rows_max."個項目被找到<br/>".$page_echo;
 	$htmlbody.= "<hr/>$page_echo<hr/>";
+	$ban_name_p="ITxeHDvk!DctIN7Gw";
+	$ban_name_p=explode("!",$ban_name_p);
+    $ban_name_p_s="NOT REGEXP ";
+    $ban_name_p_s.="'";
+    foreach($ban_name_p as $k => $v){
+        if($k>0){$ban_name_p_s.="|";}
+        $ban_name_p_s.="(";
+        $ban_name_p_s.=$v;
+        $ban_name_p_s.=")";
+    }
+    $ban_name_p_s.="'";
 	if(1){$tmp_ban_name="NOT REGEXP '^987654321'";}
 	if($p2==0){
-		$sql = "SELECT * FROM `$t2` WHERE `name` $tmp_ban_name ORDER BY `age` DESC LIMIT $show_new";//最新頁
+		$sql = "SELECT * FROM `$t2` WHERE `name` $ban_name_p_s ORDER BY `age` DESC LIMIT $show_new";//最新頁
 	}else{
 		//$sql = "SELECT * FROM `$t2` ORDER BY `age` ASC LIMIT $show_s,$show";//歷史頁每頁100筆
 		$tmp=(($p2-1)*$show)+1; $tmp2=$tmp+$show-1;
@@ -411,14 +413,32 @@ switch($mode){
 		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為10位數
 		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		reg($con,$p2,$t2,$text,$pw,$tag,$time);
+		//$t_url=$GLOBALS['t_url'];
+		header("Content-type: text/html; charset=utf-8");
+		header("refresh:2; url=$t_url");
+		$tmp="換行".$maxline."字元".$maxlen." <a href='".$t_url."'>".$t_url."</a>";
+		//<meta http-equiv="refresh" content="2; url=$t_url" />
+echo <<<EOT
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="refresh" content="2; url=$t_url" />
+</head>
+<body>
+$tmp
+</body>
+</html>
+EOT;
 	break;
 	case 'find':
+		header('Content-type: text/html; charset=utf-8');
 		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		echo htmlstart_parameter(1,$ver);
 		echo find($con,$time,$t2,$word,$tag);
 		echo $htmlend;
 	break;
 	default:
+		header('Content-type: text/html; charset=utf-8');
 		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		if($tag){//有tag
 			//if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{0,60}/');}
