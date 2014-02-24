@@ -101,7 +101,7 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	foreach($ban_name as $k => $v){if(preg_match($v,$name)){die('禁止:'.$v);}}
 	
 	//禁止的內文
-	$ban_word=array('/Gossiping/','/發信站/','/taskkill/');//reg格式
+	$ban_word=array('/Gossiping/','/發信站/','/taskkill/','/<\/a>/');//reg格式
 	foreach($ban_word as $k => $v){if(preg_match($v,$text)){die('禁止:'.$v);}}
 	
 	if(trim($text)==""){die("無內文");}
@@ -240,7 +240,6 @@ $text = $string;
 		//如果tag有值
 		if($row['tag']){$box.="<a href='./?tag=".$row['tag']."&t2=".$t2."'>".$row['tag']."</a> ";}
 		$box.="</dt>";
- 
 		$box.="\n<dd>".$text."</dd>";//內文
 		$box.="\n<dt>&#10048;</dt>";
 		//避免最新頁 沒抓滿20篇 所以另外echo
