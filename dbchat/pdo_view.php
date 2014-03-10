@@ -24,9 +24,9 @@ $httpend = <<<EOT
 EOT;
 $httpbody="";
 //
-$config['db']['dsn'] = "mysql:host=localhost;dbname=mirror;charset=utf8";
-$config['db']['user'] ="mirror";
-$config['db']['password'] ="a1a1a1a1";
+$config['db']['dsn'] = "mysql:host=localhost;dbname=wotupset_aaaaaa;charset=utf8";
+$config['db']['user'] ="wotupset_aaaaaa";
+$config['db']['password'] ="aaaaaa";
 $config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); 
 try{
 	$db = new PDO(
