@@ -374,7 +374,9 @@ function find($con,$time,$t2,$word,$tag){
 			$cc=$cc+1;
 			$tmp_bgcolor=($cc%2)?"style='background-color:#CCFFFF;'":"";
 			$echo_data.="<div $tmp_bgcolor>";
-			$echo_data.="<dt>[".$row['auto_time']."] ".$row['name']." ".$row['auto_id']." </dt>";
+			$echo_data.="<dt>[".$row['auto_time']."] ".$row['name']." ".$row['auto_id']."\n";
+			if($row['tag']){$echo_data.="<a href='./?tag=".$row['tag']."&t2=".$t2."'>".$row['tag']."</a>\n";}
+			$echo_data.="</dt>";
 			$echo_data.="<dd>".$row['text']."</dd>";
 			$echo_data.="<dt>&#10048;".$cc."</dt>";
 			$echo_data.="</div>";
