@@ -1,5 +1,5 @@
 <?php
-
+//header("Content-type: text/html; charset=utf-8");
 $handle=opendir("./"); $dir_in=""; 
 $cc=0;
 while(($file = readdir($handle))!==false) { 
@@ -418,7 +418,7 @@ switch($mode){
 		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		list($maxlen,$maxline)=reg($con,$p2,$t2,$text,$pw,$tag,$time);
 		//$t_url=$GLOBALS['t_url'];
-		header("Content-type: text/html; charset=utf-8");
+		//header("Content-type: text/html; charset=utf-8");
 		header("refresh:2; url=$t_url");
 		$tmp="換行".$maxline."字元".$maxlen." <a href='".$t_url."'>".$t_url."</a>";
 		//<meta http-equiv="refresh" content="2; url=$t_url" />
@@ -435,14 +435,14 @@ $tmp
 EOT;
 	break;
 	case 'find':
-		header('Content-type: text/html; charset=utf-8');
+		//header('Content-type: text/html; charset=utf-8');
 		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		echo htmlstart_parameter(1,$ver);
 		echo find($con,$time,$t2,$word,$tag);
 		echo $htmlend;
 	break;
 	default:
-		header('Content-type: text/html; charset=utf-8');
+		//header('Content-type: text/html; charset=utf-8');
 		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		if($tag){//有tag
 			//if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{0,60}/');}

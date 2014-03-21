@@ -1,4 +1,33 @@
 <?php
+$handle=opendir("./"); $dir_in=""; 
+$cc=0;
+while(($file = readdir($handle))!==false) { 
+	if(is_dir($file)){//只針對資料夾
+		if($file=="."||$file == ".."){
+			//什麼事都不做
+		}else{
+			if(preg_match('/^dbchat.+$/', $file)){
+				$dir_in=$file;$cc=$cc+1;
+			}else{
+				if(preg_match('/^dbchat$/', $file)){
+					die("资料夹未更名");
+				}
+			} //檢驗$query_string格式
+		}
+	}
+} 
+if($cc){}else{die("dir miss");}
+if($cc>1){die("dir multi");}
+closedir($handle); 
+
+$tmp="./".$dir_in."/db_ac.php";
+if(!is_file($tmp)){die("ac miss");}
+
+//echo $dir_in;
+require $tmp;
+if(!isset($dbuser)){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
+
+	
 $httphead = <<<EOT
 <html><head>
 <title>$phphost</title>
@@ -24,9 +53,9 @@ $httpend = <<<EOT
 EOT;
 $httpbody="";
 //
-$config['db']['dsn'] = "mysql:host=localhost;dbname=wotupset_aaaaaa;charset=utf8";
-$config['db']['user'] ="wotupset_aaaaaa";
-$config['db']['password'] ="aaaaaa";
+$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8";
+$config['db']['user'] ="$dbuser";
+$config['db']['password'] ="$dbpass";
 $config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); 
 try{
 	$db = new PDO(
