@@ -58,6 +58,8 @@ if(!$tmp_find_target_table){//找不到指定的表格 回報錯誤並停止
 	die('找不到'.$t2.'表格');
 }
 if(0){//如果是舊版 可能有欄位名稱相容性的問題
+$sql = "ALTER TABLE `$t2` CHANGE `text` `text` varchar(20000) NOT NULL";// 
+$order=mysqli_query($GLOBALS['db_conn'],$sql);
 $sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
 $order=mysqli_query($GLOBALS['db_conn'],$sql);
 $sql = "ALTER TABLE `$t2` CHANGE `time` `auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";// 

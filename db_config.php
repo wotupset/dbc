@@ -52,7 +52,7 @@ function newtable($t){//資料表格式
 	$sql = "CREATE TABLE IF NOT EXISTS `$t`
 	(
 	`name` varchar(255),
-	`text` varchar(65535) NOT NULL,
+	`text` varchar(20000) NOT NULL,
 	`age` int,
 	`tag` varchar(40),
 	`uid` varchar(255),
