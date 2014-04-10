@@ -57,10 +57,10 @@ if(!$tmp_find_target_table && $t3=="ok" && TRUE){//找不到指定的表格 於�
 if(!$tmp_find_target_table){//找不到指定的表格 回報錯誤並停止
 	die('找不到'.$t2.'表格');
 }
-if(0){//如果是舊版 可能有欄位名稱相容性的問題
+if(1){//如果是舊版 可能有欄位名稱相容性的問題
 $sql = "ALTER TABLE `$t2` CHANGE `text` `text` varchar(20000) NOT NULL";// 
 $order=mysqli_query($GLOBALS['db_conn'],$sql);
-$sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60)";// 
+$sql = "ALTER TABLE `$t2` CHANGE `tag` `tag` varchar(60) binary";// 
 $order=mysqli_query($GLOBALS['db_conn'],$sql);
 $sql = "ALTER TABLE `$t2` CHANGE `time` `auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";// 
 $order=mysqli_query($GLOBALS['db_conn'],$sql);
@@ -145,6 +145,7 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	$uid=uniqid(chr(rand(97,122)),true);//建立唯一ID
 	//$age=substr($time.substr(microtime(),2,3),-8);
 	$age=$time;//建立發文時間
+	
 	$sql="INSERT INTO `$t2` (name, text, uid, age, pw, tag)
 	VALUES ('$name','$text','$uid','$age','$pw','$tag')";
 	$result=mysqli_query($GLOBALS['db_conn'],$sql);
@@ -190,20 +191,22 @@ function view($con,$p2,$t2,$time){
 	$page_echo=$page_zero.$page_echo;//第0頁接在前面
 	$page_echo="在<h1><a href='../'>".$t2."</a></h1>有".$rows_max."個項目被找到<br/>".$page_echo;
 	$htmlbody.= "<hr/>$page_echo<hr/>";
+	
 	$ban_name_p="ITxeHDvk!DctIN7Gw";
 	$ban_name_p=explode("!",$ban_name_p);
-    $ban_name_p_s="NOT REGEXP ";
-    $ban_name_p_s.="'";
-    foreach($ban_name_p as $k => $v){
-        if($k>0){$ban_name_p_s.="|";}
-        $ban_name_p_s.="(";
-        $ban_name_p_s.=$v;
-        $ban_name_p_s.=")";
-    }
-    $ban_name_p_s.="'";
-	if(1){$tmp_ban_name="NOT REGEXP '^987654321'";}
+	$ban_name_p_s="NOT REGEXP ";
+	$ban_name_p_s.="'";
+	$ban_name_p_s.="(";
+	foreach($ban_name_p as $k => $v){
+		if($k>0){$ban_name_p_s.="|";}
+		$ban_name_p_s.=$v;
+	}
+	$ban_name_p_s.=")";
+	$ban_name_p_s.="'";
+
 	if($p2==0){
-		$sql = "SELECT * FROM `$t2` WHERE `name` $ban_name_p_s ORDER BY `age` DESC LIMIT $show_new";//最新頁
+		//WHERE `name` $ban_name_p_s 
+		$sql = "SELECT * FROM `$t2` ORDER BY `age` DESC LIMIT $show_new";//最新頁
 	}else{
 		//$sql = "SELECT * FROM `$t2` ORDER BY `age` ASC LIMIT $show_s,$show";//歷史頁每頁100筆
 		$tmp=(($p2-1)*$show)+1; $tmp2=$tmp+$show-1;
@@ -411,9 +414,8 @@ switch($mode){
 		if(!preg_match("/^zh/i", $GLOBALS['accept_language'])){die('xL');}//檢查值必須有ZH
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
 		if($chk130711!='確認'){die($chk130711);} 
-		if(strlen($tag)>60){die('tag標籤最多60個半形英數');}
 		//要考慮沒輸入tag的情況
-		if(!preg_match('/^[\w-\.]{0,60}$/', $tag)){die('tag標籤=/[\w-\.]{1,60}/');}
+		if(!preg_match('/^[\w]{0,60}$/', $tag)){die('tag標籤=/[\w]{1,60}/');}
 		//檢查時間格式
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
 		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為10位數

@@ -54,7 +54,7 @@ function newtable($t){//資料表格式
 	`name` varchar(255),
 	`text` varchar(20000) NOT NULL,
 	`age` int,
-	`tag` varchar(40),
+	`tag` varchar(60) binary,
 	`uid` varchar(255),
 	`pw` varchar(255),
 	`auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -196,7 +196,7 @@ EOT;
 //**********
 ////[自訂函數]轉換成安全字元
 function chra_fix($tmp_xx){
-	$tmp_xx=trim($tmp_xx);
+	//$tmp_xx=trim($tmp_xx);
 	//$w=addslashes($tmp_xx);//跳脫字元
 	if(get_magic_quotes_gpc()) {$tmp_xx=stripcslashes($tmp_xx);}//去掉伺服器自動加的反斜線
 	$tmp_xx=htmlspecialchars($tmp_xx,ENT_QUOTES);//HTML特殊字元
@@ -205,22 +205,23 @@ function chra_fix($tmp_xx){
 	$tmp_xx=str_replace("\r", "\n",$tmp_xx);//Enter符->換行符
 	$tmp_xx=str_replace("　", " ",$tmp_xx);//全形空格
 	$tmp_xx=preg_replace("/[\n]+/","<br/>",$tmp_xx);//換行符 改成<br/>
-	$tmp_xx=preg_replace("/[\s]+/"," ",$tmp_xx);//等價於[\f\n\r\t\v]多個空白 換成一個
+	$tmp_xx=preg_replace("/[\s]+/"," ",$tmp_xx);//等價於[\f\n\r\t\v]多個空白 換成一個空白
+	//禁用跳脫符號
+	$tmp_xx=str_replace('\\', '&#92;', $tmp_xx);//backslash 換成 HTML Characters 
+	//禁用變數符號
+	$tmp_xx=str_replace('$', '&#36;', $tmp_xx);//錢字號 換成 HTML Characters
 	//$tmp_xx=str_replace("\t", " ",$tmp_xx);//水平製表符
 	//$tmp_xx=preg_replace("/\v/"," ",$tmp_xx);//垂直製表符
 	//$tmp_xx=preg_replace("/\f/"," ",$tmp_xx);//換頁符
 	//$tmp_xx=preg_replace("/\s/","",$tmp_xx);//
 	//$tmp_xx=str_replace('\"', '&#34;', $tmp_xx);//雙引號 換成 HTML Characters
 	//$tmp_xx=str_replace('\'', '&#39;', $tmp_xx);//單引號 換成 HTML Characters
-	//$tmp_xx=str_replace('$', '&#36;', $tmp_xx);//錢字號 換成 HTML Characters
 	//$tmp_xx=str_replace('*', '&#42;', $tmp_xx);//米字號 換成 HTML Characters
 	//$tmp_xx=str_replace('^', '&#94;', $tmp_xx);//插入符 換成 HTML Characters
-	//$tmp_xx=str_replace('\\', '&#92;', $tmp_xx);//backslash 換成 HTML Characters 
 	//$tmp_xx=str_replace('/', '&#47;', $tmp_xx);//backslash 換成 HTML Characters 
 	//$tmp_xx=str_replace('+', '&#43;', $tmp_xx);//加號 換成 HTML Characters 
 	//$tmp_xx=str_replace('?', '&#63;', $tmp_xx);//問號 換成 HTML Characters 
 	//$tmp_xx=str_replace("=", "&#61;", $tmp_xx); //等於 換成 HTML Characters
-	//$tmp_xx=str_replace("\\", "&#92;", $tmp_xx);
 	return $tmp_xx;
 }
 ////**[自訂函數]轉換成安全字元
@@ -273,7 +274,7 @@ function db_page_bar($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	$sort=0; //DESC=新的在前
 	if($sort){$sort="DESC";}else{$sort="ASC";}
 	if($tag){//DESC ASC
-		$order="SELECT * FROM `$table` WHERE `tag` = '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
+		$order="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
 	}else{
 		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
 	}
@@ -303,7 +304,7 @@ function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	$sort=0; //DESC=新的在前
 	if($sort){$sort="DESC";}else{$sort="ASC";}
 	if($tag){//DESC ASC
-		$order="SELECT * FROM `$table` WHERE `tag` = '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
+		$order="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
 	}else{
 		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
 	}
