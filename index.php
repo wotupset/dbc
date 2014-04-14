@@ -1,4 +1,9 @@
 <?php
+/*
+下午 11:30 2014/4/14
+將chra_fix套用在switch前面
+目前在mirror觀察有沒有問題
+*/
 //header("Content-type: text/html; charset=utf-8");
 $handle=opendir("./"); $dir_in=""; 
 $cc=0;
@@ -107,7 +112,6 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	foreach($ban_word as $k => $v){if(preg_match($v,$text)){die('禁止:'.$v);}}
 	
 	if(trim($text)==""){die("無內文");}
-	$text=chra_fix($text);//[自訂函數]轉換成安全字元
 	$maxlen=strlen($text);//計算字數
 	$maxline=substr_count($text,"<br/>");
 	/*
@@ -321,7 +325,6 @@ function tag($con,$t2,$tag,$p2){
 }
 function find($con,$time,$t2,$word,$tag){
 	$echo_data='';
-	$word = chra_fix($word); //[自訂函數]轉換成安全字元
 	$words = preg_split("/(　| )+/", $word);//用空白來分割字串
 	if($tag){
 		$back="<a href='./?t2=".$t2."&tag=".$tag."'>←".$t2."#".$tag."</a>";
@@ -406,6 +409,8 @@ function find($con,$time,$t2,$word,$tag){
 	return $echo_data;
 }
 
+$tag=chra_fix($tag);
+$text=chra_fix($text);
 switch($mode){
 	case 'reg':
 		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
@@ -415,7 +420,7 @@ switch($mode){
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
 		if($chk130711!='確認'){die($chk130711);} 
 		//要考慮沒輸入tag的情況
-		if(!preg_match('/^[\w]{0,60}$/', $tag)){die('tag標籤=/[\w]{1,60}/');}
+		if(!preg_match('/[.]{0,60}/', $tag)){die('tag標籤=/[\w]{0,60}/');}
 		//檢查時間格式
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
 		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為10位數
