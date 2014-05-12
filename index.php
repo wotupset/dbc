@@ -1,10 +1,22 @@
 <?php
 /*
+上午 01:29 2014/4/19
+$time變數的產生 移到index.php中了
 下午 11:30 2014/4/14
 將chra_fix套用在switch前面
 目前在mirror觀察有沒有問題
 */
 //header("Content-type: text/html; charset=utf-8");
+date_default_timezone_set("Asia/Taipei");//時區設定
+$time=time();
+$ymd=date("ymd",$time); //存放該月檔案
+
+if(0){
+/*
+if(is_dir("dbchat")){
+	@rename("dbchat", "dbchat".$ymd); //更名
+}
+//
 $handle=opendir("./"); $dir_in=""; 
 $cc=0;
 while(($file = readdir($handle))!==false) { 
@@ -13,7 +25,7 @@ while(($file = readdir($handle))!==false) {
 			//什麼事都不做
 		}else{
 			if(preg_match('/^dbchat.+$/', $file)){
-				$dir_in=$file;$cc=$cc+1;
+				$dir_in="./".$file."/";$cc=$cc+1;
 			}else{
 				if(preg_match('/^dbchat$/', $file)){
 					die("资料夹未更名");
@@ -26,13 +38,16 @@ if($cc){}else{die("dir miss");}
 if($cc>1){die("dir multi");}
 closedir($handle); 
 
-$tmp="./".$dir_in."/db_ac.php";
-if(!is_file($tmp)){die("ac miss");}
-
+$tmp=$dir_in."db_ac.php";
 //echo $dir_in;
+if(!is_file($tmp)){die("ac miss".$tmp);}
 require $tmp;
-if(!isset($dbuser)){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
-
+*/
+}
+if(!is_file("./db_ac.php")){die('x');}
+require "./db_ac.php";
+if(!isset($dbuser) || !$dbuser){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
+if(!is_file("./db_config.php")){die('x');}
 require "./db_config.php";//$time
 
 
@@ -87,17 +102,17 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	//$tmp=preg_replace('/.+\.([0-9]+)$/','\\1',$ip);
 	setcookie("pwcookie", $pw,$time+7*24*3600); //存入原始的密碼 7天過期
 	if($pw==''){$pw=$ip;}//沒輸入密碼 用IP代替
-	$pw=substr(crypt(md5($pw.gmdate("ymd", $time)),'id'),-8);
+	$pw=substr(crypt(md5($pw.date("ymd", $time)),'id'),-8);
 	//修正//必要的變色
 	$cell=$text;
 	$cell = preg_replace("/\r\n/","\n",$cell);
-	$cell = preg_replace("/http\:\/\//", "EttppZX", $cell);//
-	$cell = preg_replace("/EttppZX/", "http://", $cell);//有些免空會擋過多的http字串
+	$cell = preg_replace("/http\:\/\//i", "EttppZX", $cell);//
+	$cell = preg_replace("/EttppZX/i", "http://", $cell);//有些免空會擋過多的http字串
 	$text=$cell;
 	$count_http=substr_count($cell,'http');//計算連結數量
 	////
 	$idseed="ㄎㄎ";
-	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.gmdate("ymd", $time)),'id'),-8);
+	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.date("ymd", $time)),'id'),-8);
 	$name=preg_replace("/\//","_",$name);//crypt的斜線改成底線
 	//if($GLOBALS['screen_width']&&$GLOBALS['screen_height']){}
 	//$name=$name;
@@ -172,7 +187,7 @@ function view($con,$p2,$t2,$time){
 	$all_p = ceil($rows_max/$show);//計算留言版所有頁數
 	$show_start_at = $show*($p2-1);//計算起始筆數
 	if($p2>$all_p||$p2<0||preg_match("/[^0-9]/",$p2)){die('頁數有誤');}
-	//$tmp=gmdate('H', $time);
+	//$tmp=date('H', $time);
 	$htmlbody='';
 	$page_echo='';
 	for($i=0; $i<=$all_p; $i++){//利用迴圈列所有頁數
@@ -236,7 +251,7 @@ $text = $string;
 		$box.="\n<dt>";
 		//$tmp=$tmp." ".$row['age']." ";
 		//$tmp2=strtotime($row['auto_time']);//將可讀時間轉成 UNIX時間
-		$box.="[".gmdate("Y-m-d H:i:s",$row['age'])."] ";
+		$box.="[".date("Y-m-d H:i:s",$row['age'])."] ";
 		//$box.="[".$row['auto_time']."] ";
 		$box.="".$row['name']." ";
 		//$box.="<a href='db_table_findid.php?t2=".$t2."&f2=".$row['name']."'>".$row['name']."</a> ";
@@ -270,7 +285,7 @@ $text = $string;
 //$con,$t2,$tag,$p2,$num
 function tag($con,$t2,$tag,$p2){
 	if($p2==0){
-		$num=5;//每頁25篇
+		$num=10;//每頁25篇
 		$db_page2=db_page($con,$t2,$tag,$p2,$num);//自訂函數 //依頁數取範圍資料
 		$db_page=$db_page2[0];
 	}else{
@@ -408,7 +423,7 @@ function find($con,$time,$t2,$word,$tag){
 	
 	return $echo_data;
 }
-
+$word=chra_fix($word);
 $tag=chra_fix($tag);
 $text=chra_fix($text);
 switch($mode){
@@ -420,10 +435,11 @@ switch($mode){
 		$chk130711 = ($chk130711) ? '確認' : '錯誤' ;
 		if($chk130711!='確認'){die($chk130711);} 
 		//要考慮沒輸入tag的情況
-		if(!preg_match('/[.]{0,60}/', $tag)){die('tag標籤=/[\w]{0,60}/');}
+		if(!preg_match('/[.]{0,60}/', $tag)){die('[x]tag');}
 		//檢查時間格式
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
-		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN'.$chk_time_dec);}//檢查值必須為10位數
+		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN10');}//檢查值必須為10位數
+		if($chk_time_dec+60*60 < $time){die('xTover');}
 		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		list($maxlen,$maxline)=reg($con,$p2,$t2,$text,$pw,$tag,$time);
 		//$t_url=$GLOBALS['t_url'];
@@ -442,6 +458,7 @@ $tmp
 </body>
 </html>
 EOT;
+exit;
 	break;
 	case 'find':
 		//header('Content-type: text/html; charset=utf-8');

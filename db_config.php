@@ -1,9 +1,8 @@
 <?php
-error_reporting(E_ALL & ~E_NOTICE); //所有錯誤中排除NOTICE提示
+
 extract($_POST,EXTR_SKIP);extract($_GET,EXTR_SKIP);extract($_COOKIE,EXTR_SKIP);
 $query_string=$_SERVER['QUERY_STRING'];
-date_default_timezone_set("Asia/Taipei");//時區設定
-$time=time();
+
 $GLOBALS['time']=$time;
 $GLOBALS['date']=date("y/m/d H:i:s", $time);//年月
 define("_def_TIME", $GLOBALS['time']);//UNIX時間時區設定
@@ -23,7 +22,7 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="v140414a2329p5"; //版本?
+$ver="v140513a0347p5"; //版本?
 //**********
 $table_name_index="index";//預設的表格名稱
 if($t2==""){$t2=$table_name_index;}
@@ -120,7 +119,7 @@ $htmlend=<<<EOT
 <a href='../'>../</a> <h3>$ver</h3> </body></html>
 EOT;
 //**********
-if(gmdate('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示
+if(date('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示
 $uid=uniqid(chr(rand(97,122)),true);//建立唯一ID
 $chk_time_key='abc123';
 $text_org=(string)$time;
@@ -212,11 +211,13 @@ function chra_fix($tmp_xx){
 	$tmp_xx=str_replace("　", " ",$tmp_xx);//全形空格
 	$tmp_xx=preg_replace("/[\n]+/","<br/>",$tmp_xx);//換行符 改成<br/>
 	$tmp_xx=preg_replace("/[\s]+/"," ",$tmp_xx);//等價於[\f\n\r\t\v]多個空白 換成一個空白
+	$tmp_xx=preg_replace("/[\x1-\x1F]/", "", $tmp_xx);
+	$tmp_xx=preg_replace("/[\x7F]/", "", $tmp_xx);
 	//禁用跳脫符號
 	$tmp_xx=str_replace('\\', '&#92;', $tmp_xx);//backslash 換成 HTML Characters 
 	//禁用變數符號
 	$tmp_xx=str_replace('$', '&#36;', $tmp_xx);//錢字號 換成 HTML Characters
-	//
+	//禁用單雙引號
 	$tmp_xx=str_replace('\"', '&#34;', $tmp_xx);//雙引號 換成 HTML Characters
 	$tmp_xx=str_replace('\'', '&#39;', $tmp_xx);//單引號 換成 HTML Characters
 	//$tmp_xx=str_replace("\t", " ",$tmp_xx);//水平製表符
@@ -351,7 +352,7 @@ function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱
 function text_form($name,$text,$age,$tag,$uid,$pw,$auto_time,$auto_id){ //
 	$box='';
 	$box.="<dt>";
-	$box.="[".gmdate("Y-m-d H:i:s",$age)."] ";
+	$box.="[".date("Y-m-d H:i:s",$age)."] ";
 	$box.="".$name." ";
 	$box.=" ".$auto_id." ";
 	$box.="</dt>";
