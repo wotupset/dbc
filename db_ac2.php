@@ -1,30 +1,33 @@
 <?php
-
+header('Content-type: text/html; charset=utf-8');
 $handle=opendir("./"); $dir_in=""; 
 $cc=0;
 while(($file = readdir($handle))!==false) { 
-	if(is_dir($file)){//¥u°w¹ï¸ê®Æ§¨
+	if(is_dir($file)){//åªé‡å°è³‡æ–™å¤¾
 		if($file=="."||$file == ".."){
-			//¤°»ò¨Æ³£¤£°µ
+			//ä»€éº¼äº‹éƒ½ä¸åš
 		}else{
 			if(preg_match('/^dbchat.+$/', $file)){
 				$dir_in="./".$file."/";$cc=$cc+1;
 			}else{
 				if(preg_match('/^dbchat$/', $file)){
-					die("†V®ÆƒH¥¼§ó¦W");
+					die("èµ„æ–™å¤¹æœªæ›´å");
 				}
-			} //ÀËÅç$query_string®æ¦¡
+			} //æª¢é©—$query_stringæ ¼å¼
 		}
 	}
 } 
 if($cc){}else{die("dir miss");}
 if($cc>1){die("dir multi");}
 closedir($handle); 
-
+echo $dir_in;
+if(!is_writeable(realpath("./"))){ die("æ ¹ç›®éŒ„æ²’æœ‰å¯«å…¥æ¬Šé™ï¼Œè«‹ä¿®æ”¹æ¬Šé™"); }
 $tmp=$dir_in."db_ac.php";
-if(!is_file($tmp)){die("x­ì©lÀÉ®×");}
+if(!is_file($tmp)){die("xåŽŸå§‹æª”æ¡ˆ");}
 $tmp2="./db_ac.php";
+unlink($tmp2);
+if(is_file($tmp2)){die("æª”æ¡ˆé‚„åœ¨");}
 copy($tmp,$tmp2);
-if(!is_file($tmp2)){die("x¥Ø¼ÐÀÉ®×");}
+if(!is_file($tmp2)){die("xç›®æ¨™æª”æ¡ˆ");}
 die('ok end');
 ?>
