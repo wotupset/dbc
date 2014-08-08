@@ -1,4 +1,5 @@
 <?php
+/*
 $handle=opendir("./"); $dir_in=""; 
 $cc=0;
 while(($file = readdir($handle))!==false) { 
@@ -19,8 +20,9 @@ while(($file = readdir($handle))!==false) {
 if($cc){}else{die("dir miss");}
 if($cc>1){die("dir multi");}
 closedir($handle); 
-
-$tmp="./".$dir_in."/db_ac.php";
+*/
+//$tmp="./".$dir_in."/db_ac.php";
+$tmp="./db_ac.php";
 if(!is_file($tmp)){die("ac miss");}
 
 //echo $dir_in;

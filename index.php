@@ -11,39 +11,6 @@ date_default_timezone_set("Asia/Taipei");//時區設定
 $time=time();
 $ymd=date("ymd",$time); //存放該月檔案
 
-if(0){
-/*
-if(is_dir("dbchat")){
-	@rename("dbchat", "dbchat".$ymd); //更名
-}
-//
-$handle=opendir("./"); $dir_in=""; 
-$cc=0;
-while(($file = readdir($handle))!==false) { 
-	if(is_dir($file)){//只針對資料夾
-		if($file=="."||$file == ".."){
-			//什麼事都不做
-		}else{
-			if(preg_match('/^dbchat.+$/', $file)){
-				$dir_in="./".$file."/";$cc=$cc+1;
-			}else{
-				if(preg_match('/^dbchat$/', $file)){
-					die("资料夹未更名");
-				}
-			} //檢驗$query_string格式
-		}
-	}
-} 
-if($cc){}else{die("dir miss");}
-if($cc>1){die("dir multi");}
-closedir($handle); 
-
-$tmp=$dir_in."db_ac.php";
-//echo $dir_in;
-if(!is_file($tmp)){die("ac miss".$tmp);}
-require $tmp;
-*/
-}
 if(!is_file("./db_ac.php")){die('x');}
 require "./db_ac.php";
 if(!isset($dbuser) || !$dbuser){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
@@ -87,6 +54,10 @@ $order=mysqli_query($GLOBALS['db_conn'],$sql);
 $sql = "ALTER TABLE `$t2` CHANGE `tutorial_id` `auto_id` INT NOT NULL AUTO_INCREMENT";// 
 $order=mysqli_query($GLOBALS['db_conn'],$sql);
 }
+if(0){
+$sql = "ALTER TABLE `$t2` DROP CONSTRAINT `auto_id`";// 
+$order=mysqli_query($GLOBALS['db_conn'],$sql);
+}
 ////*reg
 function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 
@@ -123,7 +94,7 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	foreach($ban_name as $k => $v){if(preg_match($v,$name)){die('禁止:'.$v);}}
 	
 	//禁止的內文
-	$ban_word=array('/Gossiping/','/發信站/','/taskkill/','/<\/a>/');//reg格式
+	$ban_word=array('/發信站/','/taskkill/','/<\/a>/');//reg格式
 	foreach($ban_word as $k => $v){if(preg_match($v,$text)){die('禁止:'.$v);}}
 	
 	if(trim($text)==""){die("無內文");}
@@ -137,6 +108,13 @@ function reg($con,$p2,$t2,$text,$pw,$tag,$time){
 	unset($tmp);//抓到資料後清空陣列
 	//加長tag長度
 	*/
+	//
+	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC";//取得資料庫總筆數
+	$result = mysqli_query($GLOBALS['db_conn'],$sql);
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+	////檢查page範圍
+	$rows_max = mysqli_num_rows($result);//取得資料庫總筆數
+	//
 	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC LIMIT 10"; //抓出最新10篇比較內容
 	$result = mysqli_query($GLOBALS['db_conn'],$sql);
 	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".$t2."不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
@@ -241,12 +219,14 @@ function view($con,$p2,$t2,$time){
 		$cc=$cc+1;
 		//if($p2==0){$cc='';}else{$cc=$cc+1;}//非最新頁列出echo編號
 		$text=$row['text'];
-//bbcode()
-$string = $text; //bbcode目前只使用連結功能
-$string = preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target='_blank'>\\2\\3</a>", $string);
-//$string = preg_replace("/\n/si", "<br/>", $string);
-$text = $string;
-//bbcode(/)
+		$text=str_replace('&#34;', "\"", $text);//雙引號 換成 HTML Characters
+		$text=str_replace('&#39;', "'", $text);//單引號 換成 HTML Characters
+		$text=str_replace('&#38;', "&", $text);//單引號 換成 HTML Characters
+		$text=str_replace('&amp;', "&", $text);//單引號 換成 HTML Characters
+		//$text=preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target='_blank'>\\2\\3</a>", $text);
+		$text=preg_replace("/(http|https)(:\/\/[\w\?\&\#\-\.\!\/\=\%\,\+\:]+)/si", "<a href=\"\\1\\2\" target='_blank'>\\1\\2</a>", $text);
+		//\!-;\=\?-\~
+		//$text=auto_link_text($text);
 		$box='';
 		$box.="\n<dt>";
 		//$tmp=$tmp." ".$row['age']." ";
@@ -423,11 +403,11 @@ function find($con,$time,$t2,$word,$tag){
 	
 	return $echo_data;
 }
-$word=chra_fix($word);
-$tag=chra_fix($tag);
-$text=chra_fix($text);
+//$word=chra_fix($word);
+//$tag=chra_fix($tag);
 switch($mode){
 	case 'reg':
+		$text=chra_fix($text);//轉換成安全字元
 		if(preg_match('/[^\w]+/', $t)){die('Table名稱只允許英文數字底線');}
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_width'])){die('xW');}//檢查值必須為數字
 		if(!preg_match('/[0-9]+/', $GLOBALS['screen_height'])){die('xH');}//檢查值必須為數字

@@ -22,7 +22,7 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="v140513a0347p5"; //版本?
+$ver="v140702a0536p5"; //版本?
 //**********
 $table_name_index="index";//預設的表格名稱
 if($t2==""){$t2=$table_name_index;}
@@ -64,7 +64,7 @@ function newtable($t){//資料表格式
 	`pw` varchar(255),
 	`auto_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	`auto_id` INT NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY ( auto_id )
+	PRIMARY KEY (auto_id)
 	)ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci";
 	return $sql;
 }
@@ -201,25 +201,27 @@ EOT;
 //**********
 ////[自訂函數]轉換成安全字元
 function chra_fix($tmp_xx){
-	$tmp_xx=trim($tmp_xx);
+	//$tmp_xx=trim($tmp_xx);
 	//$w=addslashes($tmp_xx);//跳脫字元
 	if(get_magic_quotes_gpc()) {$tmp_xx=stripcslashes($tmp_xx);}//去掉伺服器自動加的反斜線
-	$tmp_xx=htmlspecialchars($tmp_xx);//HTML特殊字元
+	//$tmp_xx=htmlspecialchars($tmp_xx);//HTML特殊字元
 	//　&->&amp;　"->&quot;　'->&#039;　<->&lt;　>->&gt;
 	$tmp_xx=str_replace("\r\n", "\r", $tmp_xx);  //改行文字の統一。 
 	$tmp_xx=str_replace("\r", "\n",$tmp_xx);//Enter符->換行符
-	$tmp_xx=str_replace("　", " ",$tmp_xx);//全形空格
-	$tmp_xx=preg_replace("/[\n]+/","<br/>",$tmp_xx);//換行符 改成<br/>
-	$tmp_xx=preg_replace("/[\s]+/"," ",$tmp_xx);//等價於[\f\n\r\t\v]多個空白 換成一個空白
-	$tmp_xx=preg_replace("/[\x1-\x1F]/", "", $tmp_xx);
-	$tmp_xx=preg_replace("/[\x7F]/", "", $tmp_xx);
+	$tmp_xx=str_replace("　", "",$tmp_xx);//全形空格
+	//
+	//$tmp_xx=preg_replace("/[\x1-\x1F]/", "", $tmp_xx);
+	//$tmp_xx=preg_replace("/[\x7F]/", "", $tmp_xx);
 	//禁用跳脫符號
 	$tmp_xx=str_replace('\\', '&#92;', $tmp_xx);//backslash 換成 HTML Characters 
 	//禁用變數符號
 	$tmp_xx=str_replace('$', '&#36;', $tmp_xx);//錢字號 換成 HTML Characters
 	//禁用單雙引號
-	$tmp_xx=str_replace('\"', '&#34;', $tmp_xx);//雙引號 換成 HTML Characters
-	$tmp_xx=str_replace('\'', '&#39;', $tmp_xx);//單引號 換成 HTML Characters
+	$tmp_xx=preg_replace("/\"/", '&#34;', $tmp_xx);//雙引號 換成 HTML Characters
+	$tmp_xx=preg_replace("/\'/", '&#39;', $tmp_xx);//單引號 換成 HTML Characters
+	//
+	$tmp_xx=str_replace('<', '&lt;', $tmp_xx);//less than 換成 HTML Characters
+	//$tmp_xx=str_replace('&', '&#38;', $tmp_xx);//米字號 換成 HTML Characters
 	//$tmp_xx=str_replace("\t", " ",$tmp_xx);//水平製表符
 	//$tmp_xx=preg_replace("/\v/"," ",$tmp_xx);//垂直製表符
 	//$tmp_xx=preg_replace("/\f/"," ",$tmp_xx);//換頁符
@@ -230,6 +232,10 @@ function chra_fix($tmp_xx){
 	//$tmp_xx=str_replace('+', '&#43;', $tmp_xx);//加號 換成 HTML Characters 
 	//$tmp_xx=str_replace('?', '&#63;', $tmp_xx);//問號 換成 HTML Characters 
 	//$tmp_xx=str_replace("=", "&#61;", $tmp_xx); //等於 換成 HTML Characters
+	//擺在最後處理
+	$tmp_xx=preg_replace("/[\n]+/","<br/>",$tmp_xx);//換行符 改成<br/>
+	$tmp_xx=preg_replace("/[\s]+/"," ",$tmp_xx);//等價於[\f\n\r\t\v]多個空白 換成一個空白
+	//
 	return $tmp_xx;
 }
 ////**[自訂函數]轉換成安全字元
@@ -357,12 +363,7 @@ function text_form($name,$text,$age,$tag,$uid,$pw,$auto_time,$auto_id){ //
 	$box.=" ".$auto_id." ";
 	$box.="</dt>";
 	//$text=chra_fix($text);
-	//bbcode()
-	$string = $text; //bbcode目前只使用連結功能
-	$string = preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target='_blank'>\\2\\3</a>", $string);
-	$string = preg_replace("/\n/si", "<br/>", $string);
-	$text = $string;
-	//bbcode(/)
+
 	$box.="\n<dd>".$text."</dd>";//內文 //縮排效果
 	$box.="\n<dt>$cc&#10048;</dt>"; //尾巴的梅花
 	$box="\n".$box."\n";
