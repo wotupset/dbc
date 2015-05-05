@@ -1,5 +1,7 @@
 <?php 
-//*****************
+	
+//**研究配合_htaccess的轉址 跟DB紀錄
+die('die');//未完成先關著
 //header('Content-type: text/html; charset=utf-8');
 error_reporting(E_ALL & ~E_NOTICE); //所有錯誤中排除NOTICE提示
 extract($_POST,EXTR_SKIP);extract($_GET,EXTR_SKIP);extract($_COOKIE,EXTR_SKIP);

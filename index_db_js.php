@@ -92,7 +92,7 @@ if($query_string){//有query_string + 檔案存在
 	}
 }
 if($chk == 2){
-	header("content-Type: text/html; charset=utf-8; charset=utf-8"); //語言強制
+	header("content-Type: text/html; charset=utf-8;"); //語言強制
 	echo "測試";
 	exit;
 }
@@ -122,6 +122,7 @@ function view($a,$b,$c,$d){
 	$mysql_dbnm=$d;
 	
 	//**********連結資料庫//
+if(1){//The mysql extension is deprecated and will be removed in the future
 	$con = mysql_connect($mysql_host, $mysql_user, $mysql_pass);//連結資料庫
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
 	mysql_query("SET time_zone='+8:00';",$con);
@@ -130,6 +131,10 @@ function view($a,$b,$c,$d){
 	// ^^加在mysql_select_db之前
 	$tmp=mysql_select_db($mysql_dbnm, $con);//選擇資料庫
 	if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
+}
+if(0){//use mysqli or PDO instead
+
+}
 	//**********連結資料庫//*
 	if($GLOBALS['ymd_set']){
 		$ymd = $GLOBALS['ymd_set'];
@@ -204,8 +209,13 @@ function rec($a,$b,$c,$d){
 	}
 	$date=date("Y-m-d H:i:s",$time);
 	$ymd=date("ymd",$time);
-	$user_ip = ($HTTP_X_FORWARDED_FOR)?$_SERVER[HTTP_X_FORWARDED_FOR]:$_SERVER[REMOTE_ADDR];
-	$user_ip = gethostbyaddr($user_ip);
+	if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARTDED_FOR'] != '') {
+		$ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	} else {
+		$ip_address = $_SERVER['REMOTE_ADDR'];
+	}
+	$user_ip=$ip_address;
+	//$user_ip = gethostbyaddr($user_ip);
 	if(isset($_SERVER['HTTP_REFERER'])){
 		$user_from=$_SERVER['HTTP_REFERER'];
 	}else{

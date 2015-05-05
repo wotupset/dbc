@@ -28,7 +28,8 @@ if(!is_file($tmp)){die("ac miss");}
 //echo $dir_in;
 require $tmp;
 if(!isset($dbuser)){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
-
+$title = "prelog_hw1kZ8ZK07c9jWiC";
+//$title = "index";
 	
 $httphead = <<<EOT
 <html><head>
@@ -55,31 +56,33 @@ $httpend = <<<EOT
 EOT;
 $httpbody="";
 //
-$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8";
-$config['db']['user'] ="$dbuser";
-$config['db']['password'] ="$dbpass";
-$config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); 
+$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8"; //登入資訊 //數據來源
+$config['db']['user'] ="$dbuser"; //使用者
+$config['db']['password'] ="$dbpass"; //密碼
+$config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); //選項//資料庫語系
 try{
-	$db = new PDO(
-	$config['db']['dsn'],
-	$config['db']['user'],
-	$config['db']['password'],
-	$config['db']['options']
+	$pdo = new PDO(
+		$config['db']['dsn'],
+		$config['db']['user'],
+		$config['db']['password'],
+		$config['db']['options']
 	);
 }catch(PDOException $e){$chk=$e->getMessage();die("錯誤:".$chk);}//錯誤訊息
 //echo "$chk";
-$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION ); //顯示錯誤
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION ); //顯示錯誤
 
-$sql = "SELECT * FROM `index` ORDER BY `auto_time` DESC LIMIT 10";
-$sth = $db->prepare($sql);
-$sth->execute();
+$sql = "SELECT * FROM `$title` ORDER BY `auto_time` DESC LIMIT 10";
+$stmt = $pdo->prepare($sql);
+$stmt->execute(); //$sth->query();
 //print_r( $sth->fetch() );//印出第一筆資料
-$result= $sth->fetchAll();
+$result = $stmt->fetchAll();//印出全部資料
 //print_r($result);//印出全部資料
+$pdo=$stmt=NULL;//結束連線
+//
 //echo count($result);
 $cc=0;
 foreach($result as $k => $v){
-	$httpbody.= $result[$k]['text']."<hr/>\n";
+	$httpbody.= print_r($v,true)."<hr/>\n";
 	$cc=$cc+1;
 }
 $httpbody.= $cc;

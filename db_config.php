@@ -2,11 +2,22 @@
 
 extract($_POST,EXTR_SKIP);extract($_GET,EXTR_SKIP);extract($_COOKIE,EXTR_SKIP);
 $query_string=$_SERVER['QUERY_STRING'];
-
+//
+date_default_timezone_set("Asia/Taipei");//時區設定
+$time=time();
+$ymd=date("ymd",$time); //存放該月檔案
+//
 $GLOBALS['time']=$time;
 $GLOBALS['date']=date("y/m/d H:i:s", $time);//年月
 define("_def_TIME", $GLOBALS['time']);//UNIX時間時區設定
 define("_def_DATE", $GLOBALS['date']);//UNIX時間時區設定
+//
+if(!file_exists("./db_ac.php")){die('x');}
+require "./db_ac.php";
+if(!isset($dbuser) || !$dbuser){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
+if(!isset($dbpass) || !$dbpass){die("讀取資料庫資訊失敗");} //讀取資料庫資訊失敗
+//
+
 /*
 foreach($_POST as $k => $v){
 	$_POST[$k]=chra_fix($_POST[$k]);
@@ -22,7 +33,7 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="v140702a0536p5"; //版本?
+$ver="v150430a0944pdo"; //版本?
 //**********
 $table_name_index="index";//預設的表格名稱
 if($t2==""){$t2=$table_name_index;}
@@ -46,13 +57,33 @@ mysql_query("SET NAMES 'utf8'");
 $tmp=mysql_select_db($dbname, $con);//選擇資料庫
 */
 //php 5.5up
-$GLOBALS['db_conn'] = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
-if(mysqli_connect_errno($GLOBALS['db_conn'])){die("[mysqli_connect_error]".mysqli_connect_error());}//有錯誤就停止
-mysqli_query($GLOBALS['db_conn'], "SET time_zone='+8:00';");
-mysqli_query($GLOBALS['db_conn'], "SET CHARACTER_SET_database='utf8'");
-mysqli_query($GLOBALS['db_conn'], "SET NAMES 'utf8'");
-if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
-
+if(0){
+	$GLOBALS['db_conn'] = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
+	if(mysqli_connect_errno($GLOBALS['db_conn'])){die("[mysqli_connect_error]".mysqli_connect_error());}//有錯誤就停止
+	mysqli_query($GLOBALS['db_conn'], "SET time_zone='+8:00';");
+	mysqli_query($GLOBALS['db_conn'], "SET CHARACTER_SET_database='utf8'");
+	mysqli_query($GLOBALS['db_conn'], "SET NAMES 'utf8'");
+	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+}
+//pdo
+if(1){
+	//
+	$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8";
+	$config['db']['user'] ="$dbuser";
+	$config['db']['password'] ="$dbpass";
+	$config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); 
+	//
+	try{
+		$db = new PDO(
+			$config['db']['dsn'],
+			$config['db']['user'],
+			$config['db']['password'],
+			$config['db']['options']
+		);
+	}catch(PDOException $e){$chk=$e->getMessage();die("錯誤:".$chk);}//錯誤訊息
+	//
+}
+//
 function newtable($t){//資料表格式
 	$sql = "CREATE TABLE IF NOT EXISTS `$t`
 	(
@@ -284,17 +315,21 @@ function about_time($go,$time){
 	return $go;
 }
 //**********
-function db_page_bar($con,$table,$tag,$p2,$num){ //連線 表單名稱 
+function db_page_bar($db,$table,$tag,$p2,$num){ //連線 表單名稱 
 	$sort=0; //DESC=新的在前
 	if($sort){$sort="DESC";}else{$sort="ASC";}
 	if($tag){//DESC ASC
-		$order="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
+		$sql="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
 	}else{
-		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
+		$sql="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
 	}
-	$sql_result = mysqli_query($GLOBALS['db_conn'],$order); //列出相符的tag
-	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
-	$rows_max = mysqli_num_rows($sql_result);//取得資料庫總筆數
+	//$sql_result = mysqli_query($GLOBALS['db_conn'],$order); //列出相符的tag
+	//if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+	//$rows_max = mysqli_num_rows($sql_result);//取得資料庫總筆數
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	$rows_max = $stmt->rowCount();//計數
+	//
 	$db_all_page=ceil($rows_max/$num);//總頁數 //返回不小于 x 的下一个整数
 	//(48/25) = 取2頁
 	if($p2>$db_all_page || $p2<0 || preg_match("/[^0-9]/",$p2) ){die('頁數有誤');}
@@ -314,17 +349,21 @@ function db_page_bar($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	$x[1]=$rows_max;
 	return $x;
 }
-function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱 
+function db_page($db,$table,$tag,$p2,$num){ //連線 表單名稱 
 	$sort=0; //DESC=新的在前
 	if($sort){$sort="DESC";}else{$sort="ASC";}
 	if($tag){//DESC ASC
-		$order="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
+		$sql="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
 	}else{
-		$order="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
+		$sql="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
 	}
-	$sql_result = mysqli_query($GLOBALS['db_conn'],$order); //列出相符的tag
-	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
-	$rows_max = mysqli_num_rows($sql_result);//取得資料庫總筆數
+	//$sql_result = mysqli_query($GLOBALS['db_conn'],$order); //列出相符的tag
+	//if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
+	//$rows_max = mysqli_num_rows($sql_result);//取得資料庫總筆數
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	$rows_max = $stmt->rowCount();//計數
+	//
 	if($p2==0){
 		$num_start_at = $rows_max -$num+1;//計算起始筆數
 	}else{
@@ -333,7 +372,8 @@ function db_page($con,$table,$tag,$p2,$num){ //連線 表單名稱
 	//50*(1-1)+1 //第1頁 每頁50篇 首篇=1
 	//50*(2-1)+1 //第2頁 每頁50篇 首篇=51
 	$tmp_str_arr=array(); $cc=0; $cc2=0;
-	while($row = mysqli_fetch_array($sql_result)){//將範圍內的資料列出
+	//while($row = mysqli_fetch_array($sql_result)){//將範圍內的資料列出
+	while($row = $stmt->fetch()  ){//將範圍內的資料列出
 		$cc=$cc+1;
 		if( ($cc >= $num_start_at)&&($cc < $num_start_at+$num) ){
 			$cc2=$cc2+1;
@@ -370,7 +410,7 @@ function text_form($name,$text,$age,$tag,$uid,$pw,$auto_time,$auto_id){ //
 	$x=$box;
 	return $x;
 }
-//**********
+//Discuz_AzDGCrypt
 function passport_encrypt($txt, $key) {
 	srand((double)microtime() * 1000000);
 	$encrypt_key = md5(rand(0, 32000));
@@ -407,7 +447,7 @@ function passport_encode($array) {
 	}
 	return implode('&', $arrayenc);
 }
-//*
+//Discuz_AzDGCrypt//
 /*
 $chk_time_key='abc123';
 $chk_time_enc=passport_encrypt($time,$chk_time_key);
