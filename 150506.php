@@ -32,6 +32,16 @@ try{
 		$config['db']['options']
 	);
 }catch(PDOException $e){$chk=$e->getMessage();die("錯誤:".$chk);}//錯誤訊息
+/*
+   $e->errorInfo ; // 錯誤明細  
+   $e->getMessage(); // 返回異常資訊  
+   $e->getPrevious(); // 返回前一個異常  
+   $e->getCode(); // 返回異常程式碼  
+   $e->getFile(); // 返回發生異常的檔案名  
+   $e->getLine(); // 返回發生異常的程式碼行號  
+   $e->getTrace(); // backtrace() 陣列  
+   $e->getTraceAsString(); // 已格成化成字串的 getTrace() 資訊    
+*/
 //
 
 
@@ -59,12 +69,80 @@ echo '<pre>'.$content.'</pre>';
 $content='';
 $sql="SHOW TABLE STATUS";
 $stmt=$db->query($sql);//
+$FFF=array(
+		'Name',
+		'Engine',
+		'Version',
+		'Row_format',
+		'Rows',
+		'Avg_row_length',
+		'Data_length',
+		'Max_data_length',
+		'Index_length',
+		'Data_free',
+		'Auto_increment',
+		'Create_time',
+		'Update_time',
+		'Check_time',
+		'Collation',
+		'Checksum',
+		'Create_options',
+		'Comment'
+);
+$FFF2=array(
+		'表名',
+		'表引擎',
+		'版本',
+		'行格式',
+		'表内总行数',
+		'平均每行大小',
+		'该表总大小',
+		'该表可存储上限',
+		'索引大小',
+		'数据多余',
+		'自动累加ID',
+		'Create_time',
+		'Update_time',
+		'Check_time',
+		'编码 ',
+		'Checksum',
+		'Create_options',
+		'注释'
+);
+$chk=0;
+$content='';
 while ($row = $stmt->fetch() ) {
 	//if($row[0]==$title){$cc++;};//有找到預設的表格
-	$content.=$row[0];
+	//$content.=print_r($row,true);
+	if($row['Name'] == $title){$chk++; }
+	//
+	$cc=0;
+	$content.='<table>';
+	foreach($FFF as $k => $v ){
+		
+		//print_r(printf("%f",$v,$v) ,true )
+		//$content.=$v.  "\t\t".$row[$v]."\n";
+		//$content.= sprintf('%1$-20s %2$-20s %3$s', $v,$row[$v],$FFF2[$cc])."\n";
+		$content.='<tr>';
+		$content.='<td>';
+		$content.=$v;
+		$content.='</td>';
+		$content.='<td>';
+		$content.=$FFF2[$cc];
+		$content.='</td>';
+		$content.='<td>';
+		$content.=$row[$v];
+		$content.='</td>';
+		$content.='</tr>';
+		$content.="\n";
+		//
+		$cc++;
+	}
+	$content.='</table>';
 	$content.="\n";
 }
 echo '<pre>'.$content.'</pre>';
+echo '<pre>是否有建立'.$title.'='.$chk.'</pre>';
 
 //
 $FFF='prelog_03';
@@ -76,7 +154,7 @@ $rows_max = count($result);
 $content .= $rows_max;
 
 if($rows_max){
-	$sql="DROP TABLE IF EXISTS `$FFF`";
+	$sql="DROP TABLE IF EXISTS `$FFF`"; //移除表
 	$stmt=$db->query($sql);//
 
 	$sql="SHOW TABLES LIKE '$FFF'";

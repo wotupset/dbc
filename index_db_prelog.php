@@ -26,7 +26,7 @@ $tmp="./db_ac.php"; //寫在index.php
 if(!file_exists("./db_ac.php")){die('[x]file');}
 require $tmp;
 if(!isset($dbhost)){die('[x]set');}
-
+if(!function_exists('gzdeflate')){die('[x]gzdeflate');}
 //*****************
 if(1){//
 	//
@@ -329,9 +329,9 @@ function rec($db){
 	$log = preg_replace("/EttppZX/i", "http://", $log);//有些免空會擋過多的http字串
 		
 	$strlen_org=strlen($log);
-	$log = gzdeflate($log); 
+	$log = gzdeflate($log); //壓縮
 	//print_r($log."\n");
-	$log = base64_encode($log);
+	$log = base64_encode($log); //編碼
 	//print_r($log."\n");
 	//exit;
 	$strlen_zip=strlen($log);
