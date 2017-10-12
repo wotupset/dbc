@@ -18,22 +18,23 @@ $ver_color2=substr($ver_md5,-6);
 //
 date_default_timezone_set("Asia/Taipei");//時區設定
 $time = (string)time();//UNIX時間時區設定
+ini_set('max_execution_time',5);
 $query_string=$_SERVER['QUERY_STRING'];
 $title = "prelog_hw1kZ8ZK07c9jWiC";
 ////
 //print_r($php_http_link);exit;
 $tmp="./db_ac.php"; //寫在index.php 
-if(!file_exists("./db_ac.php")){die('[x]file');}
+if(!file_exists($tmp)){die('[x]file');}
 require $tmp;
 if(!isset($dbhost)){die('[x]set');}
 if(!function_exists('gzdeflate')){die('[x]gzdeflate');}
 //*****************
 if(1){//
 	//
-	$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8";
+	$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8;";
 	$config['db']['user'] ="$dbuser";
 	$config['db']['password'] ="$dbpass";
-	$config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); 
+	$config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND =>"SET NAMES 'utf8' COLLATE 'utf8_unicode_ci';");
 	//
 	try{
 		$db = new PDO(
@@ -42,20 +43,50 @@ if(1){//
 			$config['db']['password'],
 			$config['db']['options']
 		);
-	}catch(PDOException $e){$chk=$e->getMessage();die("錯誤:".$chk);}//錯誤訊息
+	}catch(PDOException $e){$chk=$e->getMessage();die("try-catch錯誤:".$chk);}//錯誤訊息
+	//
+	$db->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET collation_connection 'utf8';");
+	$db->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8' COLLATE 'utf8_unicode_ci';");
+	$db->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET time_zone='+08:00'; ");
+
 }
-if(1){//如果是舊版 可能有欄位名稱相容性的問題
-	$sql = "ALTER TABLE `$title` CHANGE `arg1` `zz01` varchar(255)";// 
-	$result=$db->query($sql);//
-	$sql = "ALTER TABLE `$title` CHANGE `arg2` `zz02` varchar(255)";// 
-	$result=$db->query($sql);//
-	$sql = "ALTER TABLE `$title` CHANGE `arg3` `zz03` varchar(255)";// 
-	$result=$db->query($sql);//
-	
-	$sql = "ALTER TABLE `$title` CHANGE `log` `log` varchar(10000)";// 
-	$result=$db->query($sql);//
-	$sql = "ALTER TABLE `$title` CHANGE `tag` `tag` varchar(255)";// 
-	$result=$db->query($sql);//
+//檢查有無支援utf8mb4
+if(0){
+	$sql="SHOW CHARACTER SET";
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	$chk=0;
+	while ($row = $stmt->fetch() ) {
+		if($row[0] == 'utf8mb4'){
+			//$chk=$chk+1; //flag
+		}
+	}
+	if($chk){
+		$db->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' ");
+		//
+		if(1){//如果是舊版 可能有欄位名稱相容性的問題
+			$sql = "ALTER DATABASE `$dbname` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'";// 
+			$result=$db->query($sql);//
+			$sql = "ALTER TABLE `$title` CONVERT TO CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'";// 
+			$result=$db->query($sql);//
+		}
+		//
+		$tmp= '支援utf8mb4';
+	}else{
+		$tmp= '不支援utf8mb4';
+	}
+	//echo '<div>'.$tmp.'</div>';
+}
+//如果是舊版 可能有欄位名稱相容性的問題
+if(0){
+	//$sql = "ALTER TABLE `$title` CHANGE `arg1` `zz01` varchar(255);";// 
+	//$result=$db->query($sql);//
+	//$sql = "ALTER DATABASE `$dbname` CHARACTER SET 'utf8' COLLATE 'utf8_unicode_ci';";// 
+	//$result=$db->query($sql);//
+	//$sql = "ALTER TABLE `$title` CONVERT TO CHARACTER SET utf8 COLLATE 'utf8_unicode_ci';";// 
+	//$result=$db->query($sql);//
+	//$sql = "ALTER TABLE `$title` CHANGE `log` `log` varchar(10000) CHARACTER SET 'utf8';";// 
+	//$result=$db->query($sql);//
 }
 
 //
@@ -115,7 +146,7 @@ switch($mode){
 			if(!$x){die("\n");}
 			$x=base64_decode($x);//解碼b64
 			$x=gzinflate($x);//解壓縮
-			echo "<pre>".$x."</pre>";
+			echo "<pre>\n".$x."\n</pre>";
 		}else{//直接開啟=顯示輸入表單+清單
 			echo form();
 			$x=view($db);
@@ -128,7 +159,7 @@ switch($mode){
 			}
 			$x2.='<br/>`';
 			$x=$x2;
-			echo "<pre>".$x."</pre>";
+			echo "<pre>\n".$x."\n</pre>";
 		}
 		echo htmlend();
 	break;
@@ -232,7 +263,7 @@ function tag($db){
 	$title=$GLOBALS['title'];
 	$tag=$GLOBALS['tag'];
 	//
-	//DESC ASC //binary 區分大小寫
+	//DESC ASC //binary 區分大小寫//??
 	$sql = "SELECT * FROM `$title` WHERE `tag` = binary '$tag' ORDER BY `auto_id` ASC LIMIT 100";
 	$sth = $db->prepare($sql);
 	$sth->execute();

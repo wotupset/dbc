@@ -22,22 +22,43 @@ require "./db_config.php";//$time
 $sql="SHOW TABLE STATUS";
 $stmt = $db->prepare($sql);
 $stmt->execute();
+//print_r($db->errorInfo());
+//
+$sql="SHOW TABLE STATUS";
+$stmt = $db->prepare($sql);
+$stmt->execute();
+//print_r($db->errorInfo());
+$FFF=$db->errorInfo();
+if($FFF[0]>0){print_r($db->errorInfo());}
 //
 $tmp_find_index=0;
 $tmp_find_target_table=0;
 //while ($row = mysqli_fetch_row($result)) {
 while ($row = $stmt->fetch() ) {
+	//echo $row[0];
 	if($row[0]==$table_name_index){$tmp_find_index=1;};//有找到預設的表格
 	if($row[0]==$t2){$tmp_find_target_table=1;};//有找到指定的表格
 }
+//print_r($db->errorInfo());
 //isset($row[0]);
-if(!$tmp_find_index && TRUE){//找不到預設的表格 於是建立他
+if(!$tmp_find_index){//找不到預設的表格 於是建立他
 	//$result=mysqli_query($GLOBALS['db_conn'],$sql);
 	//if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 	$sql=newtable($table_name_index); // return $sql;
 	$result=$db->query($sql);//建立table
 	$tmp_find_target_table=1;//創立預設表格完成 將標示設定為已經找到
 }
+//print_r($db->errorInfo());exit;
+//
+$sql="SHOW TABLE STATUS";
+$stmt = $db->prepare($sql);
+$stmt->execute();
+while ($row = $stmt->fetch() ) {
+	//echo $row[0];
+}
+//print_r($db->errorInfo());
+//exit;
+//
 if(!$tmp_find_target_table && $t3=="ok" && TRUE){//找不到指定的表格 於是建立他
 	$sql=newtable($t2); // return $sql;
 	//$result=mysqli_query($GLOBALS['db_conn'],$sql);
@@ -70,17 +91,7 @@ if(0){
 }
 ////*reg
 function reg($db,$p2,$t2,$text,$pw,$tag,$time){
-
-	//echo "原始".$pw."<br/>";
-	/* 進入舊版資料夾
-	if(preg_match('/^AEGIS$/i', $tag) && preg_match('/^HOW DO YOU TURN THIS ON$/i', $text)){
-		$dir_in=$GLOBALS['dir_in'];
-		header("refresh:0; url=$dir_in");
-		exit;
-	}
-	*/
 	$ip=$_SERVER["REMOTE_ADDR"];
-	//$tmp=preg_replace('/.+\.([0-9]+)$/','\\1',$ip);
 	setcookie("pwcookie", $pw,$time+7*24*3600); //存入原始的密碼 7天過期
 	if($pw==''){$pw=$ip;}//沒輸入密碼 用IP代替
 	$pw=substr(crypt(md5($pw.date("ymd", $time)),'id'),-8);
@@ -90,34 +101,25 @@ function reg($db,$p2,$t2,$text,$pw,$tag,$time){
 	$cell = preg_replace("/http\:\/\//i", "EttppZX", $cell);//
 	$cell = preg_replace("/EttppZX/i", "http://", $cell);//有些免空會擋過多的http字串
 	$text=$cell;
-	$count_http=substr_count($cell,'http');//計算連結數量
-	////
+	//
+	//禁止的內文
+	$ban_word=array('/發信站/','/taskkill/','/<\/a>/');//reg格式
+	foreach($ban_word as $k => $v){if(preg_match($v,$text)){die('禁止:'.$v);}}
+	if(trim($text)==""){die("無內文");}
+	$maxlen=strlen($text);//計算字數
+	$maxline=substr_count($text,"<br/>");//計算行數?
+	//
+
+	//
 	$idseed="ㄎㄎ";
 	$name=substr(crypt(md5($_SERVER["REMOTE_ADDR"].$idseed.date("ymd", $time)),'id'),-8);
 	$name=preg_replace("/\//","_",$name);//crypt的斜線改成底線
-	//if($GLOBALS['screen_width']&&$GLOBALS['screen_height']){}
-	//$name=$name;
 	//表板密碼沒用到 所以改存使用者資訊
 	$pw=":".$GLOBALS['screen_width'].$GLOBALS['accept_language'].$GLOBALS['screen_height'].":";
 	//禁止的名稱
 	$ban_name=array('/9wCbz69Y/','/94yaCEaw/');//reg格式
 	foreach($ban_name as $k => $v){if(preg_match($v,$name)){die('禁止:'.$v);}}
 	
-	//禁止的內文
-	$ban_word=array('/發信站/','/taskkill/','/<\/a>/');//reg格式
-	foreach($ban_word as $k => $v){if(preg_match($v,$text)){die('禁止:'.$v);}}
-	
-	if(trim($text)==""){die("無內文");}
-	$maxlen=strlen($text);//計算字數
-	$maxline=substr_count($text,"<br/>");
-	/*
-	//計算行數
-	$tmp=array();
-	$tmp=explode("\n",$text);
-	$maxline=count($tmp);//計算行數
-	unset($tmp);//抓到資料後清空陣列
-	//加長tag長度
-	*/
 	//
 	$sql = "SELECT * FROM `$t2` ORDER BY `auto_time` DESC";//取得資料庫總筆數
 	$stmt = $db->prepare($sql);
@@ -146,13 +148,13 @@ function reg($db,$p2,$t2,$text,$pw,$tag,$time){
 		//if($newtime - $oldtime < 10){echo "time too close";}
 		if($oldname == $newname && abs($newtime - $oldtime) < 5){ //發文間隔5秒
 			//echo "find";
-			die("發文間隔時間太近");
+			die("發文間隔時間太近".$text);
 		}
 		$oldtext=$row['text'];//抓出發文內容
 		$newtext=$text;
 		if($oldtext == $newtext ){
 			//echo "find";
-			die("同樣的內容");
+			die("同樣的內容".$text);
 		}
 		//echo "<br/>";
 	}
@@ -161,9 +163,17 @@ function reg($db,$p2,$t2,$text,$pw,$tag,$time){
 	//$age=substr($time.substr(microtime(),2,3),-8);
 	$age=$time;//建立發文時間
 	
+	//
+	//$text=json_encode($text);
+	//$text = base64_encode($text); //編碼
+	//$text = gzdeflate($text); //壓縮
+	//
 	$sql="INSERT INTO `$t2` (name, text, uid, age, pw, tag) VALUES (?,?,?,?,?,?)";
 	$stmt = $db->prepare($sql);
 	$stmt->execute( array($name,$text,$uid,$age,$pw,$tag) );//寫入
+	$arr = $stmt->errorInfo();
+	//print_r($arr);exit;
+    //print_r($db->errorInfo());exit;
 	//$sql="INSERT INTO `$t2` (name, text, uid, age, pw, tag) VALUES ('$name','$text','$uid','$age','$pw','$tag')";
 	//$result=mysqli_query($GLOBALS['db_conn'],$sql);
 	//if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
@@ -245,12 +255,19 @@ function view($db,$p2,$t2,$time){
 		$cc=$cc+1;
 		//if($p2==0){$cc='';}else{$cc=$cc+1;}//非最新頁列出echo編號
 		$text=$row['text'];
+		//
+		//if(json_decode($text)){$text=json_decode($text);}
+		//$text=base64_decode($text);//解碼b64
+		//if(gzinflate($text)){$text=gzinflate($text);}//解壓縮
+		
+		//
 		$text=str_replace('&#34;', "\"", $text);//雙引號 換成 HTML Characters
 		$text=str_replace('&#39;', "'", $text);//單引號 換成 HTML Characters
 		$text=str_replace('&#38;', "&", $text);//單引號 換成 HTML Characters
 		$text=str_replace('&amp;', "&", $text);//單引號 換成 HTML Characters
 		//$text=preg_replace("/(^|[^=\]])(http|https)(:\/\/[\!-;\=\?-\~]+)/si", "\\1<a href=\"\\2\\3\" target='_blank'>\\2\\3</a>", $text);
-		$text=preg_replace("/(http|https)(:\/\/[\w\?\&\#\-\.\!\/\=\%\,\+\:\(\)\~\*]+)/si", "<a href=\"\\1\\2\" target='_blank'>\\1\\2</a>", $text);
+		//bbcode?
+		$text=preg_replace("/(http|https)(:\/\/[\@\w\?\&\#\-\.\!\/\=\%\,\+\:\(\)\~\*]+)/si", "<a href=\"\\1\\2\" target='_blank'>\\1\\2</a>", $text);
 		//\!-;\=\?-\~
 		//$text=auto_link_text($text);
 		$box='';
@@ -452,13 +469,15 @@ switch($mode){
 		//檢查時間格式
 		$chk_time_dec=passport_decrypt($exducrtj,$chk_time_key);//解碼
 		if(!preg_match('/^[0-9]{10}$/', $chk_time_dec)){die('xN10');}//檢查值必須為10位數
-		if($chk_time_dec+60*60 < $time){die('xTover');}
+		$tmp=3600-($time - $chk_time_dec);
+		if($tmp<0){die('xTover'.$tmp);}
+		$tmp='('.$tmp.')';
 		//if($time-$chk_time_dec>1*60*60){die('xtime out');} //不允許超過1小時
 		list($maxlen,$maxline)=reg($db,$p2,$t2,$text,$pw,$tag,$time);
 		//$t_url=$GLOBALS['t_url'];
 		//header("Content-type: text/html; charset=utf-8");
-		header("refresh:2; url=$t_url");
-		$tmp="換行".$maxline."字元".$maxlen." <a href='".$t_url."'>".$t_url."</a>";
+		header("refresh:4; url=$t_url");
+		$tmp=$tmp."換行".$maxline."字元".$maxlen." <a href='".$t_url."'>".$t_url."</a>";
 		//<meta http-equiv="refresh" content="2; url=$t_url" />
 echo <<<EOT
 <html>

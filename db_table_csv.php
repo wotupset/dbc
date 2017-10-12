@@ -82,8 +82,10 @@ switch($mode){
 		while ( $row = $stmt->fetch() ) {
 			$cl=count($row);
 			foreach($row AS $k => $v){
-				$echo_data.="\"".$v."\"";
-				if($k<$cl-1){$echo_data.=',';}//最後一個不加逗號
+				if(preg_match('/[0-9]+/', $k, $matches)){
+					$echo_data.="\"".$v."\"";
+					if($k<$cl-1){$echo_data.=',';}//最後一個不加逗號
+				}
 			}
 			//$echo_data.=print_r($row, true);
 			$echo_data.="\n";

@@ -8,38 +8,28 @@ date_default_timezone_set("Asia/Taipei");//時區設定
 $time = time();//UNIX時間時區設定
 $query_string=$_SERVER['QUERY_STRING'];
 $GLOBALS['title'] = "js_M8FPBum70v9QRNg2";
-////
-//$handle=opendir("./../dbc/");
-/*
-$handle=opendir("./");
-$cc=0; $dir_in=""; 
-while(($file = readdir($handle))!==false) { 
-	if(is_dir($file)){//只針對資料夾
-		if($file=="."||$file == ".."){
-			//什麼事都不做
-		}else{
-			if(preg_match('/^dbchat.+$/', $file)){
-				$dir_in="./".$file."/";
-				$cc=$cc+1;
-			}else{
-				if(preg_match('/^dbchat$/', $file)){
-					die("资料夹未更名");
-				}
-			} //檢驗$query_string格式
-		}
-	}
-} 
-*/
-////
-//require './db_acpw2.php';//$time
-//$tmp=$dir_in."db_ac.php";
-$tmp="./db_ac.php";
+//
+$tmp="./db_ac.php"; //寫在index.php 
+if(!file_exists($tmp)){die('[x]file');}
 require $tmp;
-$mysql_host = $dbhost;
-$mysql_user = $dbuser;
-$mysql_pass = $dbpass;
-$mysql_dbnm = $dbname;
-//*****************
+//
+if(1){//pdo
+	//
+	$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8";
+	$config['db']['user'] ="$dbuser";
+	$config['db']['password'] ="$dbpass";
+	$config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); 
+	//
+	try{
+		$db = new PDO(
+			$config['db']['dsn'],
+			$config['db']['user'],
+			$config['db']['password'],
+			$config['db']['options']
+		);
+	}catch(PDOException $e){$chk=$e->getMessage();die("錯誤:".$chk);}//錯誤訊息
+}
+//
 $chk=2;
 if($query_string){//有query_string + 檔案存在
 	if($query_string=="js"){
@@ -70,19 +60,19 @@ if($query_string){//有query_string + 檔案存在
 		//header("content-type: application/x-javascript; charset=utf-8"); 
 		$ymd_set=substr($query_string,4,6);
 		//echo $title_set;
-		$x=view($mysql_host,$mysql_user,$mysql_pass,$mysql_dbnm); 
+		$x=view($db);//自訂函數
 		echo $x[0];
 		$chk=0;
 	}
 	if($query_string=="view"){
 		header('Content-Type: application/javascript; charset=utf-8');
 		//header("content-type: application/x-javascript; charset=utf-8"); 
-		$x=view($mysql_host,$mysql_user,$mysql_pass,$mysql_dbnm); 
+		$x=view200($db);//自訂函數
 		echo $x[0];
 		$chk=0;
 	}
 	if($chk == 1){
-		$rec_x = rec($mysql_host,$mysql_user,$mysql_pass,$mysql_dbnm); //紀錄來源 //回傳紀錄檔行數
+		$rec_x = rec($db); //紀錄來源 //回傳紀錄檔行數//自訂函數
 		$rec_x_0=$rec_x[0]; //輸入的字串
 		$rec_x_1=$rec_x[1]; //計數器
 		$rec_x_2=$rec_x[2]; //tbnm
@@ -114,41 +104,24 @@ function newtable($t){//資料表格式
 	return $sql;
 }
 //**********
-function view($a,$b,$c,$d){
+function view($db){
 	$time=$GLOBALS['time'];
-	$mysql_host=$a;
-	$mysql_user=$b;
-	$mysql_pass=$c;
-	$mysql_dbnm=$d;
-	
-	//**********連結資料庫//
-if(1){//The mysql extension is deprecated and will be removed in the future
-	$con = mysql_connect($mysql_host, $mysql_user, $mysql_pass);//連結資料庫
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
-	mysql_query("SET time_zone='+8:00';",$con);
-	mysql_query("SET CHARACTER_SET_database='utf8'",$con);
-	mysql_query("SET NAMES 'utf8'"); 
-	// ^^加在mysql_select_db之前
-	$tmp=mysql_select_db($mysql_dbnm, $con);//選擇資料庫
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
-}
-if(0){//use mysqli or PDO instead
-
-}
-	//**********連結資料庫//*
+	$title=$GLOBALS['title'];
+	//
 	if($GLOBALS['ymd_set']){
 		$ymd = $GLOBALS['ymd_set'];
 	}else{
 		$ymd = date("ymd",$time);
 	}
-	$title=$GLOBALS['title'];
+	//
 	$sql = "SELECT * FROM `$title` WHERE `ymd`='$ymd' ORDER BY `auto_time` DESC";//取得資料庫總筆數
-	$result = mysql_query($sql); //mysql_list_tables($dbname)
-	if(mysql_error()){die(mysql_error());}//有錯誤就停止 //mysql_error()
-	$max = mysql_num_rows($result);//取得資料庫總筆數
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	$rows_max = $stmt->rowCount();//計數
 	$cc=0;$str_tmp='';
-	$str_tmp.=$title."\t".$max."\t".$ymd."\n";
-	while($row = mysql_fetch_array($result)){//將範圍內的資料列出
+	$str_tmp.=$title."\t".$rows_max."\t".$ymd."\n";
+	
+	while( $row = $stmt->fetch() ){//將範圍內的資料列出
 		$str_tmp.= $row['date'];
 		$str_tmp.= "\t";
 		$str_tmp.= $row['ymd'];
@@ -167,39 +140,50 @@ if(0){//use mysqli or PDO instead
 	return $x;
 }
 //**********
-function rec($a,$b,$c,$d){
+function view200($db){ //列出200個 //while
 	$time=$GLOBALS['time'];
-	$mysql_host=$a;
-	$mysql_user=$b;
-	$mysql_pass=$c;
-	$mysql_dbnm=$d;
-	
-	//**********連結資料庫
-	$con = mysql_connect($mysql_host, $mysql_user, $mysql_pass);//連結資料庫
-	if(mysql_error()){die("");}else{}//讀取失敗則停止 //mysql_error()
-	mysql_query("SET time_zone='+8:00';",$con);
-	mysql_query("SET CHARACTER_SET_database='utf8'",$con);
-	mysql_query("SET NAMES 'utf8'"); 
-	// ^^加在mysql_select_db之前
-	$tmp=mysql_select_db($mysql_dbnm, $con);//選擇資料庫
-	if(mysql_error()){die("");}else{}//讀取失敗則停止 //mysql_error()
-	//
-	//$tmp=mysql_query("DROP TABLE IF EXISTS `$title`",$con);
-	//if(mysql_error()){die(mysql_error());}//有錯誤就停止
-	//**********連結資料庫
 	$title=$GLOBALS['title'];
+	//
+	$sql = "SELECT * FROM `$title` ORDER BY `auto_time` DESC LIMIT 200";//取得資料庫總筆數
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	//$result= $stmt->fetchAll(); //全部
+	//
+	$cc=0;$str_tmp='';
+	//$data_count=count($result);
+	$data_count = $stmt->rowCount();//計數
+	$ymd = date("ymd",$time);
+	$str_tmp.=$title."\t".$data_count."\t".$ymd."\n";
+	//
+	while($v = $stmt->fetch() ) {
+		$cc=$cc+1;
+		$str_tmp.= $v['date'];
+		$str_tmp.= "\t".$v['ymd']."\t".$cc."\n";
+		$str_tmp.= "\t".$v['user_ip']."\n";
+		$str_tmp.= "\t".$v['user_from']."\n";
+		$str_tmp.= "\t".$v['arg1']."\n";
+	}
+	//
+	$x[0]=$str_tmp;
+	return $x;
+}
+//**********
+function rec($db){
+	$time=$GLOBALS['time'];
+	$title=$GLOBALS['title'];
+	//
+	//**********連結資料庫
 	$sql="SHOW TABLE STATUS";
-	$result = mysql_query($sql); //mysql_list_tables($dbname)
-	if(mysql_error()){die("");}else{}//讀取失敗則停止
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
 	$cc=1;
-	while($row = mysql_fetch_row($result)){
+	while($row = $stmt->fetch()){//
 		if($row[0]==$title){$cc=0;};//有找到叫XXX的table
 	}
 	//isset($row[0]);
 	if($cc){//建立預設的表格
 		$sql=newtable($title); // 自訂函式
-		$result=mysql_query($sql,$con);
-		if(mysql_error()){die("");}else{}//讀取失敗則停止
+		$result = $db->query($sql);
 	}
 	//**********連結資料庫
 	//舊版格式相容
@@ -209,31 +193,26 @@ function rec($a,$b,$c,$d){
 	}
 	$date=date("Y-m-d H:i:s",$time);
 	$ymd=date("ymd",$time);
-	if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARTDED_FOR'] != '') {
-		$ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
-	} else {
-		$ip_address = $_SERVER['REMOTE_ADDR'];
-	}
-	$user_ip=$ip_address;
-	//$user_ip = gethostbyaddr($user_ip);
+	$user_ip = $_SERVER['REMOTE_ADDR'];
+	$user_ip = str_pad($user_ip,16,' ',STR_PAD_RIGHT).'//'.gethostbyaddr($user_ip);
+	//來源參照
 	if(isset($_SERVER['HTTP_REFERER'])){
 		$user_from=$_SERVER['HTTP_REFERER'];
 	}else{
 		$user_from="不明";
 	}
 
-	$sql="INSERT INTO `$title` ( date, user_ip, ymd, user_from)
-	VALUES ('$date','$user_ip','$ymd','$user_from')";
-	$result=mysql_query($sql,$con);
-	if(mysql_error()){die("");}else{}//讀取失敗則停止
+	$sql="INSERT INTO `$title` ( date, user_ip, ymd, user_from) VALUES (?,?,?,?)";
+	$stmt = $db->prepare($sql);
+	$stmt->execute( array($date,$user_ip,$ymd,$user_from) );//寫入
 	//**********連結資料庫
 	$sql = "SELECT * FROM `$title` ORDER BY `auto_time` DESC";//取得資料庫總筆數
-	$result = mysql_query($sql,$con);
-	if(mysql_error()){die("");}else{}//讀取失敗則停止
-	////檢查page範圍
-	$max = mysql_num_rows($result);//取得資料庫總筆數
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	$rows_max = $stmt->rowCount();//計數
+
 	$x[0] = "$date,$user_ip,$user_ip2,$user_from";
-	$x[1] = "$max";
+	$x[1] = "$rows_max";
 	$x[2] = "$title";
 	return $x;
 }

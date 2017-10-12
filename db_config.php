@@ -4,7 +4,8 @@ extract($_POST,EXTR_SKIP);extract($_GET,EXTR_SKIP);extract($_COOKIE,EXTR_SKIP);
 $query_string=$_SERVER['QUERY_STRING'];
 //
 date_default_timezone_set("Asia/Taipei");//時區設定
-$time=time();
+$time = (string)time();//UNIX時間時區設定
+ini_set('max_execution_time',5);
 $ymd=date("ymd",$time); //存放該月檔案
 //
 $GLOBALS['time']=$time;
@@ -33,7 +34,7 @@ $phpself=basename($_SERVER["SCRIPT_FILENAME"]);//被執行的文件檔名
 $GLOBALS['phpself']=$phpself;
 $phphost=$_SERVER["SERVER_NAME"];//php的主機名稱
 $urlselflink= "http://".$_SERVER["SERVER_NAME"].$_SERVER["SCRIPT_NAME"]."";
-$ver="v150430a0944pdo"; //版本?
+$ver="v150714w0723pdo"; //版本?
 //**********
 $table_name_index="index";//預設的表格名稱
 if($t2==""){$t2=$table_name_index;}
@@ -61,17 +62,21 @@ if(0){
 	$GLOBALS['db_conn'] = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
 	if(mysqli_connect_errno($GLOBALS['db_conn'])){die("[mysqli_connect_error]".mysqli_connect_error());}//有錯誤就停止
 	mysqli_query($GLOBALS['db_conn'], "SET time_zone='+8:00';");
-	mysqli_query($GLOBALS['db_conn'], "SET CHARACTER_SET_database='utf8'");
-	mysqli_query($GLOBALS['db_conn'], "SET NAMES 'utf8'");
+	mysqli_query($GLOBALS['db_conn'], "SET CHARACTER_SET_database='utf8mb4'");
+	mysqli_query($GLOBALS['db_conn'], "SET NAMES 'utf8mb4'");
 	if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
 }
 //pdo
 if(1){
 	//
-	$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;charset=utf8";
+	$config['db']['dsn'] = "mysql:host=$dbhost;dbname=$dbname;";//charset=utf8
 	$config['db']['user'] ="$dbuser";
 	$config['db']['password'] ="$dbpass";
-	$config['db']['options'] = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'); 
+	$config['db']['options'] = array(
+		PDO::MYSQL_ATTR_INIT_COMMAND =>"
+		SET time_zone='+08:00';
+		SET NAMES 'utf8' COLLATE 'utf8_unicode_ci';
+		");
 	//
 	try{
 		$db = new PDO(
@@ -80,15 +85,59 @@ if(1){
 			$config['db']['password'],
 			$config['db']['options']
 		);
-	}catch(PDOException $e){$chk=$e->getMessage();die("錯誤:".$chk);}//錯誤訊息
+	}catch(PDOException $e){$chk=$e->getMessage();die("try-catch錯誤:".$chk);}//錯誤訊息
 	//
+}
+$db->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET time_zone='+08:00'; ");
+$db->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8' COLLATE 'utf8_general_ci';");
+$db->query("ALTER DATABASE `$dbname` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';");//
+
+//檢查有無支援utf8mb4
+$sql="SHOW CHARACTER SET";
+$stmt = $db->prepare($sql);
+$stmt->execute();
+//檢查有無支援utf8mb4
+if(0){
+	$sql="SHOW CHARACTER SET";
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	$chk=0;
+	while ($row = $stmt->fetch() ) {
+		//print_r($row);
+		if($row[0] == 'utf8mb4'){
+			$chk=$chk+1; //flag
+		}
+	}
+	if($chk==0){echo $chk;exit;}
+	if($chk){
+		$db->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' ");
+		//
+		if(1){//如果是舊版 可能有欄位名稱相容性的問題
+			$sql = "ALTER DATABASE `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";// 
+			$result=$db->query($sql);//
+			$sql = "ALTER TABLE `$title` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";// 
+			$result=$db->query($sql);//
+		}
+		//
+		$tmp= '支援utf8mb4';
+	}else{
+		$tmp= '不支援utf8mb4';
+	}
+	echo '<div>'.$tmp.'</div>';
+}
+//如果是舊版 可能有欄位名稱相容性的問題
+if(0){
+	//$sql = "ALTER TABLE `$title` CHANGE `arg1` `zz01` varchar(255)";// 
+	//$sql = "ALTER TABLE `$title` COLUMN `text` VARCHAR(20000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;";// 
+	$sql = "ALTER TABLE `$title` COLUMN `text` VARCHAR(20000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;";// 
+	$result=$db->query($sql);//
 }
 //
 function newtable($t){//資料表格式
 	$sql = "CREATE TABLE IF NOT EXISTS `$t`
 	(
 	`name` varchar(255),
-	`text` varchar(20000) NOT NULL,
+	`text` varchar(9000) NOT NULL,
 	`age` int,
 	`tag` varchar(60) binary,
 	`uid` varchar(255),
@@ -153,7 +202,7 @@ EOT;
 if(date('i',$time)<=30){$tmp='_';}else{$tmp='^';}//依時間顯示
 $uid=uniqid(chr(rand(97,122)),true);//建立唯一ID
 $chk_time_key='abc123';
-$text_org=(string)$time;
+$text_org=$time;
 $chk_time_enc=passport_encrypt($text_org,$chk_time_key);//建立認證
 $chk_time_dec=passport_decrypt($chk_time_enc,$chk_time_key);//解碼
 //**********
@@ -165,10 +214,10 @@ $form=<<<EOT
 		內文<textarea name="text" id="text" cols="48" rows="4" wrap=soft></textarea><br/>
 		<div id='timedown_div'>
 			標籤<input type="text" name="tag" size="16" value="$tag"/>
-			<input type="text" id="exducrtj" name="exducrtj" maxlength="32" size="1" value=""/>
-			<input type="text" id="screen_width" name="screen_width" maxlength="32" size="3" value=""/>
-			<input type="text" id="screen_height" name="screen_height" maxlength="32" size="3" value=""/>
-			<input type="text" id="accept_language" name="accept_language" maxlength="32" size="3" value=""/>
+			<input type="hidden" id="exducrtj" name="exducrtj" maxlength="32" size="1" value=""/>
+			<input type="hidden" id="screen_width" name="screen_width" maxlength="32" size="3" value=""/>
+			<input type="hidden" id="screen_height" name="screen_height" maxlength="32" size="3" value=""/>
+			<input type="hidden" id="accept_language" name="accept_language" maxlength="32" size="3" value=""/>
 			<span id='timedown_span'></span>
 		</div>
 		<div style="position: relative; border:#000 1px solid; width: 100%; height: 20px;">
@@ -214,14 +263,27 @@ function check2(){//onsubmit
 	document.getElementById("form1").submit();
 }
 var t=60*60;
+
+time_o = new Date().getTime();
+time_o = Number(time_o);
+time_o = Math.floor(time_o/1000);
+
 function timedown(){
 	var st;
-	document.getElementById("timedown_span").innerHTML=t;
-	if(t){
-		t=t-1;
+	var tmp=0;
+
+	time_r = new Date().getTime();
+	time_r = Number(time_r);
+	time_r = Math.floor(time_r/1000);
+	
+	tmp=3600-(time_r-time_o);
+	document.getElementById("timedown_span").innerHTML=tmp; //time_o +'/'+time_r;
+	if(tmp>0){
+		//t=t-1;
 		st=setTimeout("timedown()",1000);
 	}else{
 		clearTimeout(st);
+		document.getElementById("timedown_span").innerHTML='尾';
 		document.getElementById("timedown_div").style.backgroundColor="#E04000";
 	}
 }
@@ -353,9 +415,9 @@ function db_page($db,$table,$tag,$p2,$num){ //連線 表單名稱
 	$sort=0; //DESC=新的在前
 	if($sort){$sort="DESC";}else{$sort="ASC";}
 	if($tag){//DESC ASC
-		$sql="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `age` $sort"; //取得符合tag的文章
+		$sql="SELECT * FROM `$table` WHERE `tag` = binary '$tag' ORDER BY `auto_time` $sort"; //取得符合tag的文章
 	}else{
-		$sql="SELECT * FROM `$table` ORDER BY `age` $sort"; //不使用tag的情況
+		$sql="SELECT * FROM `$table` ORDER BY `auto_time` $sort"; //不使用tag的情況
 	}
 	//$sql_result = mysqli_query($GLOBALS['db_conn'],$order); //列出相符的tag
 	//if(mysqli_error($GLOBALS['db_conn'])){die("[mysqli_error]讀取失敗 可能是表單不存在".mysqli_error($GLOBALS['db_conn']));}//有錯誤就停止
